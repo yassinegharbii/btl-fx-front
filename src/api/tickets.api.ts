@@ -1,5 +1,6 @@
 import { api } from '@/lib/axios'
 import type { Ticket, TicketCreatePayload } from '@/types/ticket.types'
+import type { DashboardPeriod, DashboardStats } from '@/types/dashboard.types'
 
 export const ticketsApi = {
   getThreadTickets: (threadId: number) =>
@@ -13,6 +14,12 @@ export const ticketsApi = {
 
   declineTicket: (orderId: number) =>
     api.post<Ticket>(`/tickets/${orderId}/decline`).then((r) => r.data),
+
+  // ✅ NOUVEAU — Dashboard trader
+  getDashboard: (period: DashboardPeriod = 'all') =>
+    api
+      .get<DashboardStats>('/tickets/dashboard', { params: { period } })
+      .then((r) => r.data),
 
   // Agence
   getByRef: (refTicket: string) =>

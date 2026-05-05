@@ -10,13 +10,13 @@ import { Spinner }            from '@/components/ui/Spinner'
 
 function FlagImg({ code, emoji }: { code: string; emoji: string | null }) {
     const [err, setErr] = useState(false)
-    if (err) return <span className="text-sm">{emoji ?? code}</span>
+    if (err) return <span className="text-base">{emoji ?? code}</span>
     return (
         <img
             src={`/flags/${code}.png`}
             alt={code}
             onError={() => setErr(true)}
-            className="w-7 h-5 object-cover rounded-sm"
+            className="w-9 h-6 object-cover rounded-sm"
         />
     )
 }
@@ -46,10 +46,8 @@ export function TraderSidebar() {
     const { threadId } = useParams()
     const navigate = useNavigate()
 
-    // ✅ Barre de recherche
     const [search, setSearch] = useState('')
 
-    // Map client_id → user pour faire correspondre au thread
     const clientById = useMemo(() => {
         const map: Record<number, { full_name: string | null; username: string }> = {}
         ;(clients ?? []).forEach((c: any) => {
@@ -61,7 +59,6 @@ export function TraderSidebar() {
         return map
     }, [clients])
 
-    // ✅ Filtrer les threads selon la recherche (par username OU full_name)
     const filteredThreads = useMemo(() => {
         if (!threads) return []
         if (!search.trim()) return threads
@@ -84,7 +81,7 @@ export function TraderSidebar() {
                  borderRight: '1px solid rgba(42, 128, 64, 0.3)',
              }}>
 
-            {/* SECTION COURS */}
+            {/* SECTION COURS — agrandie */}
             <div className="flex-shrink-0 max-h-[45%] flex flex-col"
                  style={{ borderBottom: '1px solid rgba(42, 128, 64, 0.25)' }}>
 
@@ -95,8 +92,8 @@ export function TraderSidebar() {
                      }}>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <TrendingUp size={12} style={{ color: '#4ade80' }} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest"
+                            <TrendingUp size={13} style={{ color: '#4ade80' }} />
+                            <span className="text-[11px] font-bold uppercase tracking-widest"
                                   style={{ color: '#a8c4aa' }}>
                                 Cours de change
                             </span>
@@ -104,45 +101,45 @@ export function TraderSidebar() {
                         <div className="flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full inline-block"
                                   style={{ background: '#4ade80', animation: 'pulseDot 1.5s infinite' }} />
-                            <span className="text-[9px] uppercase tracking-widest" style={{ color: '#5a8060' }}>
+                            <span className="text-[10px] uppercase tracking-widest" style={{ color: '#5a8060' }}>
                                 Live
                             </span>
                         </div>
                     </div>
-                    <div className="text-[10px] font-mono-nums mt-0.5" style={{ color: '#5a8060' }}>
+                    <div className="text-[11px] font-mono-nums mt-1" style={{ color: '#5a8060' }}>
                         {liveTime}
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
                     {ratesLoading && (
-                        <div className="p-4 text-center text-[11px]" style={{ color: '#5a8060' }}>
+                        <div className="p-4 text-center text-[12px]" style={{ color: '#5a8060' }}>
                             Chargement...
                         </div>
                     )}
                     {rates?.rates.map((rate, i) => (
                         <div key={rate.code}
-                             className="flex items-center px-3 py-1.5 transition-colors"
+                             className="flex items-center px-3 py-2.5 transition-colors"
                              style={{
                                  borderBottom: '1px solid rgba(26, 92, 42, 0.15)',
                                  background: i % 2 !== 0 ? 'rgba(26, 92, 42, 0.06)' : 'transparent',
                              }}>
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <div className="flex-shrink-0 w-8 h-6 rounded overflow-hidden border flex items-center justify-center"
+                            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                                <div className="flex-shrink-0 w-10 h-7 rounded overflow-hidden border flex items-center justify-center"
                                      style={{
                                          background: 'rgba(255,255,255,0.05)',
                                          borderColor: 'rgba(255,255,255,0.08)',
                                      }}>
                                     <FlagImg code={rate.code} emoji={rate.flag} />
                                 </div>
-                                <span className="text-[11px] font-bold text-white">{rate.code}</span>
+                                <span className="text-[14px] font-bold text-white">{rate.code}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="w-12 text-right font-mono-nums text-[11px] font-semibold"
+                                <span className="w-14 text-right font-mono-nums text-[13px] font-bold"
                                       style={{ color: '#4ade80' }}>
                                     {rate.buy.toFixed(3)}
                                 </span>
-                                <span className="w-12 text-right font-mono-nums text-[11px] font-semibold"
+                                <span className="w-14 text-right font-mono-nums text-[13px] font-bold"
                                       style={{ color: '#fb7185' }}>
                                     {rate.sell.toFixed(3)}
                                 </span>
@@ -153,43 +150,44 @@ export function TraderSidebar() {
             </div>
 
             {/* SÉPARATEUR + COMPTEUR */}
-            <div className="flex-shrink-0 px-4 py-2 flex items-center gap-2"
+            <div className="flex-shrink-0 px-4 py-2.5 flex items-center gap-2"
                  style={{
                      background: 'linear-gradient(90deg, rgba(15,58,26,0.6), rgba(10,31,14,0.9), rgba(15,58,26,0.6))',
                      borderTop: '1px solid rgba(42, 128, 64, 0.3)',
                      borderBottom: '1px solid rgba(42, 128, 64, 0.15)',
                  }}>
-                <Users size={11} style={{ color: '#4ade80' }} />
-                <span className="text-[10px] font-bold uppercase tracking-widest flex-1"
+                <Users size={12} style={{ color: '#4ade80' }} />
+                <span className="text-[11px] font-bold uppercase tracking-widest flex-1"
                       style={{ color: '#a8c4aa' }}>
                     Clients actifs
                 </span>
-                <span className="text-[10px] font-mono-nums px-1.5 py-0.5 rounded"
+                <span className="text-[11px] font-mono-nums px-2 py-0.5 rounded font-bold"
                       style={{ background: 'rgba(74, 222, 128, 0.15)', color: '#4ade80' }}>
                     {filteredThreads.length}{threads && filteredThreads.length !== threads.length ? `/${threads.length}` : ''}
                 </span>
             </div>
 
-            {/* ✅ BARRE DE RECHERCHE CLIENTS */}
-            <div className="flex-shrink-0 px-3 py-2"
+            {/* BARRE DE RECHERCHE */}
+            <div className="flex-shrink-0 px-3 py-2.5"
                  style={{
                      background: 'rgba(15, 58, 26, 0.4)',
                      borderBottom: '1px solid rgba(42, 128, 64, 0.15)',
                  }}>
                 <div className="relative">
-                    <Search size={11}
-                            className="absolute left-2.5 top-1/2 -translate-y-1/2"
+                    <Search size={12}
+                            className="absolute left-3 top-1/2 -translate-y-1/2"
                             style={{ color: '#5a8060' }} />
                     <input
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Rechercher un client..."
-                        className="w-full pl-7 pr-7 py-1.5 text-[11px] rounded-md focus:outline-none transition-colors"
+                        className="w-full pl-8 pr-8 py-2 text-[12px] rounded-md focus:outline-none transition-colors"
                         style={{
                             background: 'rgba(0, 0, 0, 0.4)',
                             border: '1px solid rgba(255,255,255,0.06)',
                             color: '#fff',
+                            fontSize: '14px',
                         }}
                         onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(74, 222, 128, 0.4)')}
                         onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
@@ -197,11 +195,11 @@ export function TraderSidebar() {
                     {search && (
                         <button
                             onClick={() => setSearch('')}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded flex items-center justify-center"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center"
                             style={{ color: '#5a8060' }}
                             title="Effacer"
                         >
-                            <X size={10} />
+                            <X size={11} />
                         </button>
                     )}
                 </div>
@@ -223,14 +221,14 @@ export function TraderSidebar() {
                 ))}
 
                 {!threadsLoading && threads && threads.length > 0 && filteredThreads.length === 0 && (
-                    <div className="px-4 py-6 text-center text-[11px]" style={{ color: '#5a8060' }}>
+                    <div className="px-4 py-6 text-center text-[12px]" style={{ color: '#5a8060' }}>
                         Aucun client ne correspond à<br />
                         <span className="font-semibold" style={{ color: '#a8c4aa' }}>« {search} »</span>
                     </div>
                 )}
 
                 {!threadsLoading && !threads?.length && (
-                    <div className="px-4 py-6 text-center text-[11px]" style={{ color: '#5a8060' }}>
+                    <div className="px-4 py-6 text-center text-[12px]" style={{ color: '#5a8060' }}>
                         Aucune discussion active
                     </div>
                 )}

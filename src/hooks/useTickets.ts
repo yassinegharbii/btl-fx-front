@@ -3,14 +3,32 @@ import { ticketsApi } from '@/api/tickets.api'
 import { queryClient } from '@/lib/queryClient'
 import toast from 'react-hot-toast'
 
+/**
+ * Récupère les tickets d'un thread.
+ *
+ * Comportement :
+ * - Refetch à CHAQUE montage du composant (chaque ouverture de conversation)
+ * - Pas de polling automatique
+ * - Mise à jour via WebSocket (ticket_created, ticket_accepted, ticket_declined)
+ *   qui déclenchent invalidateQueries → refetch
+ */
 export function useThreadTickets(threadId: number | null) {
   return useQuery({
     queryKey: ['tickets', threadId],
     queryFn:  () => ticketsApi.getThreadTickets(threadId!),
     enabled:  !!threadId,
+
+    // ✅ Refetch à chaque montage (ouverture de la conversation)
+    refetchOnMount: 'always',
+
+    // staleTime: 0 → toujours périmé → refetch obligatoire au montage
     staleTime: 0,
-    refetchInterval: 5000,   // ← polling 5s en secours
-    refetchOnWindowFocus: true,
+
+    // ❌ Plus de polling automatique 5s
+    refetchInterval: false,
+
+    // Pas de refetch quand on revient sur l'onglet
+    refetchOnWindowFocus: false,
   })
 }
 

@@ -10,7 +10,7 @@ function FlagImg({ code, emoji }: { code: string; emoji: string | null }) {
             src={`/flags/${code}.png`}
             alt={code}
             onError={() => setErr(true)}
-            className="w-8 h-5 object-cover rounded-sm"
+            className="w-9 h-6 object-cover rounded-sm"
         />
     )
 }
@@ -42,41 +42,42 @@ export function RateSidebar() {
                  borderRight: '1px solid rgba(26,92,42,0.3)',
              }}>
 
-            <div className="px-3 py-3 flex-shrink-0"
+            <div className="px-4 py-3 flex-shrink-0"
                  style={{
                      borderBottom: '1px solid rgba(26,92,42,0.3)',
                      background: 'rgba(15,58,26,0.8)',
                  }}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <TrendingUp size={12} style={{ color: '#4ade80' }} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest"
+                        <TrendingUp size={13} style={{ color: '#4ade80' }} />
+                        <span className="text-[11px] font-bold uppercase tracking-widest"
                               style={{ color: '#a8c4aa' }}>
-              Cours de change
-            </span>
+                            Cours de change
+                        </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full inline-block"
-                  style={{ background: '#4ade80', animation: 'pulseDot 1.5s infinite' }} />
-                        <span className="text-[9px] uppercase tracking-widest" style={{ color: '#5a8060' }}>
-              Live
-            </span>
+                        <span className="w-1.5 h-1.5 rounded-full inline-block"
+                              style={{ background: '#4ade80', animation: 'pulseDot 1.5s infinite' }} />
+                        <span className="text-[10px] uppercase tracking-widest" style={{ color: '#5a8060' }}>
+                            Live
+                        </span>
                     </div>
                 </div>
-                <div className="text-[11px] font-mono-nums mt-0.5" style={{ color: '#5a8060' }}>
+                <div className="text-[11px] font-mono-nums mt-1" style={{ color: '#5a8060' }}>
                     {liveTime}
                 </div>
 
-                <div className="flex mt-2 text-[9px] uppercase tracking-wider" style={{ color: '#5a8060' }}>
+                <div className="flex mt-2.5 text-[10px] uppercase tracking-wider font-semibold"
+                     style={{ color: '#5a8060' }}>
                     <span className="flex-1">Devise</span>
-                    <span className="w-12 text-right" style={{ color: '#4ade80' }}>Achat</span>
-                    <span className="w-12 text-right ml-1" style={{ color: '#fb7185' }}>Vente</span>
+                    <span className="w-14 text-right" style={{ color: '#4ade80' }}>Achat</span>
+                    <span className="w-14 text-right ml-1" style={{ color: '#fb7185' }}>Vente</span>
                 </div>
             </div>
 
             <div className="flex-1 overflow-y-auto">
                 {isLoading && (
-                    <div className="px-3 py-6 text-[11px] text-center" style={{ color: '#5a8060' }}>
+                    <div className="px-4 py-6 text-[12px] text-center" style={{ color: '#5a8060' }}>
                         Chargement...
                     </div>
                 )}
@@ -86,26 +87,25 @@ export function RateSidebar() {
                              borderBottom: '1px solid rgba(26, 92, 42, 0.15)',
                              background: i % 2 !== 0 ? 'rgba(26, 92, 42, 0.08)' : 'transparent',
                          }}
-                         className="flex items-center px-3 py-2.5 transition-colors">
+                         className="flex items-center px-4 py-3 transition-colors">
 
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <div className="flex-shrink-0 w-9 h-6 rounded overflow-hidden border
-                              flex items-center justify-center"
+                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                            <div className="flex-shrink-0 w-10 h-7 rounded overflow-hidden border
+                                            flex items-center justify-center"
                                  style={{
                                      background: 'rgba(255,255,255,0.05)',
                                      borderColor: 'rgba(255,255,255,0.1)',
                                  }}>
                                 <FlagImg code={rate.code} emoji={rate.flag} />
                             </div>
-                            {/* ✅ Uniquement le code, plus de nom */}
-                            <div className="text-[13px] font-bold text-white">{rate.code}</div>
+                            <div className="text-[14px] font-bold text-white">{rate.code}</div>
                         </div>
 
-                        <div className="w-14 text-right font-mono-nums text-[12px] font-semibold"
+                        <div className="w-14 text-right font-mono-nums text-[13px] font-bold"
                              style={{ color: '#4ade80' }}>
                             {rate.buy.toFixed(3)}
                         </div>
-                        <div className="w-14 text-right font-mono-nums text-[12px] font-semibold ml-1"
+                        <div className="w-14 text-right font-mono-nums text-[13px] font-bold ml-1"
                              style={{ color: '#fb7185' }}>
                             {rate.sell.toFixed(3)}
                         </div>

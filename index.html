@@ -1,13 +1,30 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BTL-FX</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/images/favicon.ico" />
+
+  <!-- ✅ Viewport optimisé mobile -->
+  <!--    - viewport-fit=cover : utilise toute la zone (sous le notch iPhone)
+          - maximum-scale=1, user-scalable=no : empêche le zoom (UI bancaire) -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+
+  <!-- ✅ Couleur de la barre de status iOS Safari / Android Chrome -->
+  <meta name="theme-color" content="#0f3a1a" />
+
+  <!-- ✅ Mobile webapp styles (Apple) -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BTL-FX" />
+
+  <!-- ✅ Empêche les "phone numbers" auto-link sur iOS -->
+  <meta name="format-detection" content="telephone=no" />
+
+  <title>BTL-FX</title>
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="/src/main.tsx"></script>
+</body>
 </html>

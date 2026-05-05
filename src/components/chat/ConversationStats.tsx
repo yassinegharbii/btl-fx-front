@@ -6,6 +6,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 
 import { useThreadTickets } from '@/hooks/useTickets'
+import { useIsMobile }      from '@/hooks/useIsMobile'
 import type { Ticket, OrderStatus } from '@/types/ticket.types'
 
 interface Props {
@@ -21,7 +22,6 @@ interface StatConfig {
     border: string
 }
 
-/* ─── Configuration des 6 stats à afficher ──────────────────────────── */
 const STAT_CONFIGS: StatConfig[] = [
     {
         key: 'PROPOSED',
@@ -75,8 +75,8 @@ const STAT_CONFIGS: StatConfig[] = [
 
 export function ConversationStats({ threadId }: Props) {
     const { data: tickets, isLoading } = useThreadTickets(threadId)
+    const isMobile = useIsMobile()
 
-    /* ─── Compteurs par statut ───────────────────────────────────────── */
     const counts = useMemo(() => {
         const list: Ticket[] = Array.isArray(tickets) ? tickets : []
         const total = list.length
@@ -89,89 +89,107 @@ export function ConversationStats({ threadId }: Props) {
         return { total, byStatus }
     }, [tickets])
 
-    /* ─── Pas de panel si aucun ticket ───────────────────────────────── */
     if (isLoading || counts.total === 0) {
         return null
     }
 
     return (
         <div
-            className="flex-shrink-0 px-4 py-2.5 border-b"
+            className="flex-shrink-0 border-b"
             style={{
                 background: 'linear-gradient(180deg, rgba(15, 58, 26, 0.5), rgba(10, 31, 14, 0.4))',
                 borderColor: 'rgba(42, 128, 64, 0.25)',
                 animation: 'statsAppear 0.3s ease-out',
             }}
         >
-            <div className="flex items-center gap-3">
-
-                {/* Total — colonne principale */}
-                <div
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg flex-shrink-0"
-                    style={{
-                        background: 'rgba(74, 222, 128, 0.08)',
-                        border: '1px solid rgba(74, 222, 128, 0.25)',
-                    }}
-                >
-                    <BarChart3 size={13} style={{ color: '#4ade80' }} />
-                    <div className="flex items-baseline gap-1.5">
-                        <span className="text-[9px] uppercase tracking-widest font-semibold"
-                              style={{ color: '#a8c4aa' }}>
-                            Total
-                        </span>
-                        <span className="font-mono-nums text-sm font-bold text-white">
-                            {counts.total}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Séparateur vertical */}
-                <div className="w-px h-7 flex-shrink-0"
-                     style={{ background: 'rgba(42, 128, 64, 0.25)' }} />
-
-                {/* 6 stats par statut */}
-                <div className="flex-1 grid grid-cols-6 gap-2 min-w-0">
-                    {STAT_CONFIGS.map((cfg) => (
-                        <StatChip
-                            key={cfg.key}
-                            config={cfg}
-                            count={counts.byStatus[cfg.key] ?? 0}
-                            total={counts.total}
-                        />
-                    ))}
-                </div>
-            </div>
+            {isMobile ? (
+                <MobileStatsView counts={counts} />
+            ) : (
+                <DesktopStatsView counts={counts} />
+            )}
 
             <style>{`
                 @keyframes statsAppear {
                     from { opacity: 0; transform: translateY(-4px); }
                     to   { opacity: 1; transform: translateY(0); }
                 }
+                .stats-scroll::-webkit-scrollbar { display: none; }
             `}</style>
         </div>
     )
 }
 
-/* ─── Une carte stat compacte ────────────────────────────────────────── */
-function StatChip({
-                      config, count, total,
-                  }: { config: StatConfig; count: number; total: number }) {
+/* ─── Vue MOBILE — INCHANGÉE ──────────────────────────────────────── */
+function MobileStatsView({
+                             counts,
+                         }: {
+    counts: { total: number; byStatus: Record<string, number> }
+}) {
+    return (
+        <div className="px-3 py-2.5">
+            <div
+                className="stats-scroll flex gap-2 overflow-x-auto pb-1"
+                style={{
+                    scrollbarWidth: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                }}
+            >
+                <div
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg flex-shrink-0"
+                    style={{
+                        background: 'rgba(74, 222, 128, 0.08)',
+                        border: '1px solid rgba(74, 222, 128, 0.25)',
+                        minWidth: 80,
+                    }}
+                >
+                    <BarChart3 size={13} style={{ color: '#4ade80', flexShrink: 0 }} />
+                    <div className="flex flex-col leading-tight">
+                        <span className="font-mono-nums text-sm font-bold text-white">
+                            {counts.total}
+                        </span>
+                        <span className="text-[8px] uppercase tracking-wider"
+                              style={{ color: '#a8c4aa' }}>
+                            Total
+                        </span>
+                    </div>
+                </div>
+
+                {STAT_CONFIGS.map((cfg) => (
+                    <MobileStatChip
+                        key={cfg.key}
+                        config={cfg}
+                        count={counts.byStatus[cfg.key] ?? 0}
+                        total={counts.total}
+                    />
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function MobileStatChip({
+                            config, count, total,
+                        }: {
+    config: StatConfig
+    count: number
+    total: number
+}) {
     const Icon = config.icon
     const pct  = total > 0 ? (count / total) * 100 : 0
     const isActive = count > 0
 
     return (
         <div
-            className="px-2 py-1.5 rounded-lg flex items-center gap-2 min-w-0 transition-all"
+            className="px-2 py-1.5 rounded-lg flex items-center gap-2 min-w-0 transition-all flex-shrink-0"
             style={{
                 background: isActive ? config.bg : 'rgba(0, 0, 0, 0.2)',
                 border: `1px solid ${isActive ? config.border : 'rgba(255,255,255,0.05)'}`,
                 opacity: isActive ? 1 : 0.5,
+                minWidth: 90,
             }}
             title={`${config.label} : ${count} (${pct.toFixed(1)}%)`}
         >
             <Icon size={11} style={{ color: isActive ? config.color : '#5a8060', flexShrink: 0 }} />
-
             <div className="flex flex-col min-w-0 leading-tight">
                 <div className="flex items-baseline gap-1">
                     <span className="font-mono-nums text-[13px] font-bold"
@@ -185,6 +203,117 @@ function StatChip({
                     )}
                 </div>
                 <span className="text-[8px] uppercase tracking-wider truncate"
+                      style={{ color: '#a8c4aa' }}>
+                    {config.label}
+                </span>
+            </div>
+        </div>
+    )
+}
+
+/* ─── Vue DESKTOP — REFONDUE plus aérée ───────────────────────────── */
+function DesktopStatsView({
+                              counts,
+                          }: {
+    counts: { total: number; byStatus: Record<string, number> }
+}) {
+    return (
+        <div className="px-5 py-3.5">
+            <div className="flex items-stretch gap-3">
+
+                {/* TOTAL — carte plus grande à gauche */}
+                <div
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl flex-shrink-0"
+                    style={{
+                        background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.15), rgba(42, 128, 64, 0.1))',
+                        border: '1px solid rgba(74, 222, 128, 0.3)',
+                    }}
+                >
+                    <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{
+                            background: 'rgba(74, 222, 128, 0.2)',
+                            border: '1px solid rgba(74, 222, 128, 0.4)',
+                        }}
+                    >
+                        <BarChart3 size={16} style={{ color: '#4ade80' }} />
+                    </div>
+                    <div className="flex flex-col leading-tight">
+                        <span className="font-mono-nums text-2xl font-bold text-white">
+                            {counts.total}
+                        </span>
+                        <span className="text-[10px] uppercase tracking-widest font-semibold"
+                              style={{ color: '#a8c4aa' }}>
+                            Tickets
+                        </span>
+                    </div>
+                </div>
+
+                {/* Séparateur vertical */}
+                <div className="w-px flex-shrink-0"
+                     style={{ background: 'rgba(42, 128, 64, 0.25)' }} />
+
+                {/* 6 stats — chips plus larges */}
+                <div className="flex-1 grid grid-cols-6 gap-2 min-w-0">
+                    {STAT_CONFIGS.map((cfg) => (
+                        <DesktopStatCard
+                            key={cfg.key}
+                            config={cfg}
+                            count={counts.byStatus[cfg.key] ?? 0}
+                            total={counts.total}
+                        />
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function DesktopStatCard({
+                             config, count, total,
+                         }: {
+    config: StatConfig
+    count: number
+    total: number
+}) {
+    const Icon = config.icon
+    const pct  = total > 0 ? (count / total) * 100 : 0
+    const isActive = count > 0
+
+    return (
+        <div
+            className="px-3 py-2.5 rounded-xl flex items-center gap-2.5 min-w-0 transition-all"
+            style={{
+                background: isActive ? config.bg : 'rgba(0, 0, 0, 0.2)',
+                border: `1px solid ${isActive ? config.border : 'rgba(255,255,255,0.05)'}`,
+                opacity: isActive ? 1 : 0.45,
+            }}
+            title={`${config.label} : ${count} (${pct.toFixed(1)}%)`}
+        >
+            <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{
+                    background: isActive ? config.bg : 'rgba(0, 0, 0, 0.3)',
+                    border: `1px solid ${isActive ? config.border : 'rgba(255,255,255,0.05)'}`,
+                }}
+            >
+                <Icon size={14} style={{ color: isActive ? config.color : '#5a8060' }} />
+            </div>
+
+            <div className="flex flex-col min-w-0 leading-tight flex-1">
+                <div className="flex items-baseline gap-1.5">
+                    <span className="font-mono-nums text-[18px] font-bold"
+                          style={{ color: isActive ? config.color : '#5a8060' }}>
+                        {count}
+                    </span>
+                    {isActive && total > 0 && (
+                        <span className="text-[10px] font-mono-nums font-semibold"
+                              style={{ color: '#5a8060' }}>
+                            {pct.toFixed(0)}%
+                        </span>
+                    )}
+                </div>
+                <span className="text-[10px] uppercase tracking-wider font-semibold truncate"
                       style={{ color: '#a8c4aa' }}>
                     {config.label}
                 </span>

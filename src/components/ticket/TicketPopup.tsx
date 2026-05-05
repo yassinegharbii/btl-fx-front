@@ -17,7 +17,7 @@ export function TicketPopup({ ticket }: Props) {
     const accept  = useAcceptTicket()
     const decline = useDeclineTicket()
 
-    // Auto-refresh à l'instant précis de l'expiration
+    /* ─── Auto-refresh à expiration ──────────────────────────────────── */
     useEffect(() => {
         if (!ticket.valid_until) return
 
@@ -38,7 +38,7 @@ export function TicketPopup({ ticket }: Props) {
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center sm:p-4"
             style={{
                 background: 'rgba(7, 17, 11, 0.85)',
                 backdropFilter: 'blur(12px)',
@@ -52,17 +52,19 @@ export function TicketPopup({ ticket }: Props) {
                 }}
             />
 
+            {/* ✅ Mobile : fullscreen plein écran. Desktop : modale centrée. */}
             <div
-                className="relative w-full max-w-md rounded-2xl overflow-hidden animate-fade-up flex flex-col max-h-[92vh]"
+                className="relative w-full sm:max-w-md sm:rounded-2xl overflow-hidden flex flex-col h-full sm:h-auto sm:max-h-[92vh]"
                 style={{
                     background: 'linear-gradient(180deg, #0f3a1a 0%, #0a1f0e 100%)',
                     border: '2px solid rgba(42, 128, 64, 0.6)',
                     boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(74, 222, 128, 0.15)',
+                    animation: 'fadeUp 0.3s ease-out',
                 }}
             >
                 {/* HEADER */}
                 <div
-                    className="px-6 py-4 border-b flex items-center gap-3 flex-shrink-0"
+                    className="px-4 sm:px-6 py-3 sm:py-4 border-b flex items-center gap-3 flex-shrink-0"
                     style={{
                         background: 'rgba(26, 92, 42, 0.3)',
                         borderColor: 'rgba(42, 128, 64, 0.3)',
@@ -77,21 +79,21 @@ export function TicketPopup({ ticket }: Props) {
                     >
                         <AlertCircle size={18} style={{ color: '#4ade80' }} />
                     </div>
-                    <div className="flex-1">
-                        <h2 className="text-base font-bold text-white">Proposition de taux</h2>
-                        <p className="text-xs mt-0.5" style={{ color: '#a8c4aa' }}>
+                    <div className="flex-1 min-w-0">
+                        <h2 className="text-sm sm:text-base font-bold text-white">Proposition de taux</h2>
+                        <p className="text-[11px] sm:text-xs mt-0.5" style={{ color: '#a8c4aa' }}>
                             Votre trader vous propose une transaction
                         </p>
                     </div>
                 </div>
 
                 {/* BODY scrollable */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4">
                     {/* Ref + statut */}
                     <div className="flex items-center justify-between">
-            <span className="font-mono-nums text-sm font-bold text-white tracking-wide">
-              {ticket.ref_ticket}
-            </span>
+                        <span className="font-mono-nums text-sm font-bold text-white tracking-wide">
+                            {ticket.ref_ticket}
+                        </span>
                         <TicketBadge status={ticket.order_status} />
                     </div>
 
@@ -110,7 +112,7 @@ export function TicketPopup({ ticket }: Props) {
                             Opération
                         </div>
                         <div
-                            className="text-xl font-bold"
+                            className="text-lg sm:text-xl font-bold"
                             style={{
                                 color: ticket.operation === 'BUY' ? '#4ade80' : '#fb7185',
                             }}
@@ -120,7 +122,7 @@ export function TicketPopup({ ticket }: Props) {
                     </div>
 
                     {/* Grille infos */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                         <InfoCard
                             label="Montant"
                             value={ticket.order_amount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })}
@@ -141,30 +143,23 @@ export function TicketPopup({ ticket }: Props) {
                         />
                     </div>
 
-                    {/* Taux négocié — sans TND */}
+                    {/* Taux négocié */}
                     <div
-                        className="text-center py-4 rounded-xl"
+                        className="text-center py-3 sm:py-4 rounded-xl"
                         style={{
                             background: 'linear-gradient(135deg, rgba(42, 128, 64, 0.25), rgba(74, 222, 128, 0.1))',
                             border: '1px solid rgba(74, 222, 128, 0.35)',
                         }}
                     >
-                        <div
-                            className="text-[10px] uppercase tracking-widest mb-1"
-                            style={{ color: '#a8c4aa' }}
-                        >
+                        <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: '#a8c4aa' }}>
                             Taux négocié
                         </div>
-                        <div className="font-mono-nums text-3xl font-bold text-white">
+                        <div className="font-mono-nums text-2xl sm:text-3xl font-bold text-white">
                             {ticket.negotiated_price?.toFixed(4)}
                         </div>
                         {ticket.market_rate_used != null && (
-                            <div
-                                className="text-[10px] mt-1.5 font-mono-nums"
-                                style={{ color: '#5a8060' }}
-                            >
-                                Marché :{' '}
-                                <span className="font-semibold">{ticket.market_rate_used.toFixed(4)}</span>
+                            <div className="text-[10px] mt-1.5 font-mono-nums" style={{ color: '#5a8060' }}>
+                                Marché : <span className="font-semibold">{ticket.market_rate_used.toFixed(4)}</span>
                             </div>
                         )}
                     </div>
@@ -183,7 +178,7 @@ export function TicketPopup({ ticket }: Props) {
                         </div>
                     )}
 
-                    {/* Détail des coupures */}
+                    {/* Coupures */}
                     {ticket.bills && ticket.bills.length > 0 && (
                         <div
                             className="px-3 py-2.5 rounded-lg space-y-2"
@@ -193,18 +188,12 @@ export function TicketPopup({ ticket }: Props) {
                             }}
                         >
                             <div className="flex items-center justify-between">
-                <span
-                    className="text-[10px] uppercase tracking-wider"
-                    style={{ color: '#a8c4aa' }}
-                >
-                  Coupures {ticket.currency_code}
-                </span>
-                                <span
-                                    className="text-[10px] font-mono-nums"
-                                    style={{ color: '#5a8060' }}
-                                >
-                  {ticket.bills.reduce((n, b) => n + b.quantity, 0)} billets
-                </span>
+                                <span className="text-[10px] uppercase tracking-wider" style={{ color: '#a8c4aa' }}>
+                                    Coupures {ticket.currency_code}
+                                </span>
+                                <span className="text-[10px] font-mono-nums" style={{ color: '#5a8060' }}>
+                                    {ticket.bills.reduce((n, b) => n + b.quantity, 0)} billets
+                                </span>
                             </div>
                             <div className="grid grid-cols-2 gap-1.5">
                                 {ticket.bills.map((b) => (
@@ -216,21 +205,15 @@ export function TicketPopup({ ticket }: Props) {
                                             border: '1px solid rgba(74, 222, 128, 0.15)',
                                         }}
                                     >
-                    <span className="text-xs font-mono-nums font-semibold text-white">
-                      {b.bill_value}
-                        <span
-                            className="text-[9px] ml-1 font-normal"
-                            style={{ color: '#a8c4aa' }}
-                        >
-                        {ticket.currency_code}
-                      </span>
-                    </span>
-                                        <span
-                                            className="text-[11px] font-mono-nums font-bold"
-                                            style={{ color: '#4ade80' }}
-                                        >
-                      × {b.quantity}
-                    </span>
+                                        <span className="text-xs font-mono-nums font-semibold text-white">
+                                            {b.bill_value}
+                                            <span className="text-[9px] ml-1 font-normal" style={{ color: '#a8c4aa' }}>
+                                                {ticket.currency_code}
+                                            </span>
+                                        </span>
+                                        <span className="text-[11px] font-mono-nums font-bold" style={{ color: '#4ade80' }}>
+                                            × {b.quantity}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
@@ -241,9 +224,9 @@ export function TicketPopup({ ticket }: Props) {
                     <ExpiryBar validUntil={ticket.valid_until} createdAt={ticket.created_at} />
                 </div>
 
-                {/* ACTIONS */}
+                {/* ACTIONS — boutons gros et tactiles */}
                 <div
-                    className="p-4 grid grid-cols-2 gap-3 border-t flex-shrink-0"
+                    className="p-3 sm:p-4 grid grid-cols-2 gap-3 border-t flex-shrink-0"
                     style={{
                         borderColor: 'rgba(42, 128, 64, 0.3)',
                         background: 'rgba(0,0,0,0.2)',
@@ -252,8 +235,8 @@ export function TicketPopup({ ticket }: Props) {
                     <button
                         disabled={decline.isPending || accept.isPending}
                         onClick={() => decline.mutate(ticket.order_id)}
-                        className="py-3 rounded-xl font-semibold text-sm transition-all
-                       active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2"
+                        className="py-3.5 rounded-xl font-semibold text-sm transition-all
+                                   active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2 min-h-[48px]"
                         style={{
                             background: 'rgba(251, 113, 133, 0.12)',
                             border: '1px solid rgba(251, 113, 133, 0.3)',
@@ -266,8 +249,8 @@ export function TicketPopup({ ticket }: Props) {
                     <button
                         disabled={decline.isPending || accept.isPending}
                         onClick={() => accept.mutate(ticket.order_id)}
-                        className="py-3 rounded-xl font-semibold text-sm transition-all
-                       active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2 text-white"
+                        className="py-3.5 rounded-xl font-semibold text-sm transition-all
+                                   active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2 text-white min-h-[48px]"
                         style={{
                             background: 'linear-gradient(135deg, #2a8040, #1a5c2a)',
                             border: '1px solid rgba(74, 222, 128, 0.4)',
@@ -281,16 +264,18 @@ export function TicketPopup({ ticket }: Props) {
             </div>
 
             <style>{`
-        @keyframes alertPulse {
-          0%, 100% { opacity: 0.6; }
-          50%       { opacity: 1; }
-        }
-      `}</style>
+                @keyframes alertPulse {
+                    0%, 100% { opacity: 0.6; }
+                    50%       { opacity: 1; }
+                }
+                @keyframes fadeUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
         </div>
     )
 }
-
-/* ─── Helpers ──────────────────────────────────────────────────────────── */
 
 function InfoCard({
                       label,
@@ -316,8 +301,8 @@ function InfoCard({
                 {value}
                 {unit && (
                     <span className="text-[10px] ml-1 font-normal" style={{ color: '#a8c4aa' }}>
-            {unit}
-          </span>
+                        {unit}
+                    </span>
                 )}
             </div>
         </div>
