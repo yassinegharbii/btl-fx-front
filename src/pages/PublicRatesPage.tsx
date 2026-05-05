@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { usePublicRates } from '@/hooks/useRates'
 import { useRatesStore }  from '@/stores/rates.store'
 import { useIsMobile }    from '@/hooks/useIsMobile'
+import type { Rate }      from '@/types/rate.types'
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 const DAYS_FR   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
@@ -32,15 +33,26 @@ function FlagImg({ code, emoji, size = 'lg' }: { code: string; emoji: string | n
   )
 }
 
-function TickerFlag({ code, emoji }: { code: string; emoji: string | null }) {
+function TickerFlag({ code, emoji, isMobile }: { code: string; emoji: string | null; isMobile: boolean }) {
   const [err, setErr] = useState(false)
-  if (err) return <span style={{ fontSize: '1.3rem' }}>{emoji ?? code}</span>
+  const dimensions = isMobile
+      ? { w: 42, h: 30, fontSize: '1.8rem' }
+      : { w: 56, h: 40, fontSize: '2.4rem' }
+
+  if (err) return <span style={{ fontSize: dimensions.fontSize, lineHeight: 1 }}>{emoji ?? code}</span>
   return (
       <img
           src={`/flags/${code}.png`}
           alt={code}
           onError={() => setErr(true)}
-          style={{ width: 32, height: 22, borderRadius: 3, objectFit: 'cover' }}
+          style={{
+            width: dimensions.w,
+            height: dimensions.h,
+            borderRadius: 4,
+            objectFit: 'cover',
+            display: 'block',
+            flexShrink: 0,
+          }}
       />
   )
 }
@@ -65,6 +77,7 @@ export default function PublicRatesPage() {
   }, [])
 
   const tickerItems = rates.filter((r) => r.buy != null)
+  const tickerDuration = isMobile ? 100 : 130
 
   return (
       <div style={{
@@ -171,7 +184,7 @@ export default function PublicRatesPage() {
           }}>
             {!isMobile && (
                 <div style={{
-                  fontSize: '0.85rem',
+                  fontSize: '1.05rem',
                   color: '#a8c4aa',
                   fontWeight: 500,
                   letterSpacing: '0.04em',
@@ -237,7 +250,8 @@ export default function PublicRatesPage() {
         }}>
           <div style={{
             display: 'flex',
-            animation: 'tickerScroll 45s linear infinite',
+            width: 'max-content',
+            animation: `tickerScroll ${tickerDuration}s linear infinite`,
             whiteSpace: 'nowrap',
           }}>
             {[0, 1].map((dup) => (
@@ -247,13 +261,13 @@ export default function PublicRatesPage() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: isMobile ? 6 : 12,
-                        padding: isMobile ? '0 16px' : '0 32px',
+                        padding: isMobile ? '0 20px' : '0 42px',
+                        marginRight: isMobile ? 8 : 16,
                         fontSize: isMobile ? '0.85rem' : '1.8rem',
                         fontWeight: 600,
                         letterSpacing: '0.04em',
-                        borderRight: '1px solid rgba(255,255,255,0.2)',
                       }}>
-                                    <TickerFlag code={r.code} emoji={r.flag} />
+                                    <TickerFlag code={r.code} emoji={r.flag} isMobile={isMobile} />
                                     <span style={{ color: 'rgba(255,255,255,0.75)' }}>{r.code}</span>
                                     <span style={{ color: 'rgba(255,255,255,0.35)', margin: '0 2px' }}>|</span>
                                     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 500 }}>
@@ -263,6 +277,7 @@ export default function PublicRatesPage() {
                                     <span style={{ fontFamily: "'JetBrains Mono',monospace", fontWeight: 500 }}>
                                         V: {r.sell.toFixed(3)}
                                     </span>
+                                    <span style={{ color: 'rgba(255,255,255,0.35)', margin: '0 2px' }}>|</span>
                                 </span>
                   ))}
                 </div>
@@ -308,7 +323,7 @@ export default function PublicRatesPage() {
 }
 
 /* ─── Vue MOBILE — cards verticales empilées ─────────────────────────── */
-function MobileRatesView({ rates }: { rates: any[] }) {
+function MobileRatesView({ rates }: { rates: Rate[] }) {
   return (
       <div style={{
         position: 'relative',
@@ -435,7 +450,7 @@ function MobileRatesView({ rates }: { rates: any[] }) {
 }
 
 /* ─── Vue DESKTOP — 2 tableaux côte à côte (inchangée) ───────────────── */
-function DesktopRatesView({ rates }: { rates: any[] }) {
+function DesktopRatesView({ rates }: { rates: Rate[] }) {
   const half  = Math.ceil(rates.length / 2)
   const left  = rates.slice(0, half)
   const right = rates.slice(half)

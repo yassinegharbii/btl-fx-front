@@ -116,7 +116,7 @@ export default function LoginPage() {
                                     }}
                                 />
                                 <div
-                                    className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl flex items-center justify-center"
+                                    className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-3xl flex items-center justify-center"
                                     style={{
                                         background: 'linear-gradient(135deg, #ffffff, #f0f9f1)',
                                         boxShadow: '0 12px 32px rgba(74, 222, 128, 0.3)',
@@ -125,7 +125,7 @@ export default function LoginPage() {
                                     <img
                                         src="/images/logo-btl.png"
                                         alt="BTL"
-                                        className="w-12 h-12 sm:w-16 sm:h-16 object-contain"
+                                        className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
                                         onError={(e) => {
                                             // Fallback si logo manquant
                                             (e.target as HTMLImageElement).style.display = 'none'
@@ -148,7 +148,7 @@ export default function LoginPage() {
                         </div>
 
                         <h1 className="font-bold text-xl sm:text-2xl tracking-tight mb-1 text-white">
-                            BTL Forex
+                            BTL FX
                         </h1>
                         <p className="text-[11px] sm:text-xs" style={{ color: '#a8c4aa' }}>
                             Plateforme de négociation de devises
