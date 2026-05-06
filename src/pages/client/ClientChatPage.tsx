@@ -17,6 +17,7 @@ import { RateSidebar }       from '@/components/rates/RateSidebar'
 import { TicketPopup }       from '@/components/ticket/TicketPopup'
 import { Spinner }           from '@/components/ui/Spinner'
 import { MobileDrawer }      from '@/components/ui/MobileDrawer'
+import { ThemeToggle }       from '@/components/ui/ThemeToggle'
 import { queryClient }       from '@/lib/queryClient'
 
 export default function ClientChatPage() {
@@ -74,23 +75,23 @@ export default function ClientChatPage() {
 
     if (isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center" style={{ background: '#070d09' }}>
+            <div className="flex h-screen items-center justify-center"
+                 style={{ background: 'var(--color-bg-primary)' }}>
                 <Spinner />
             </div>
         )
     }
 
     return (
-        <div className="flex h-screen overflow-hidden" style={{ background: '#070d09' }}>
+        <div className="flex h-screen overflow-hidden"
+             style={{ background: 'var(--color-bg-primary)' }}>
 
-            {/* ─── DESKTOP : sidebar fixe ─── */}
             {!isMobile && (
                 <aside className="w-60 flex-shrink-0">
                     <RateSidebar />
                 </aside>
             )}
 
-            {/* ─── MOBILE : drawer ─── */}
             {isMobile && (
                 <MobileDrawer
                     open={showRatesDrawer}
@@ -107,12 +108,12 @@ export default function ClientChatPage() {
 
             <div className="flex-1 flex flex-col min-w-0 relative">
 
-                {/* ─── HEADER ─── */}
+                {/* HEADER */}
                 <div
                     className="flex items-center justify-between px-3 sm:px-5 py-3 sm:py-3.5 border-b flex-shrink-0 gap-2"
                     style={{
-                        background: 'rgba(15, 58, 26, 0.8)',
-                        borderColor: 'rgba(42, 128, 64, 0.3)',
+                        background: 'var(--color-bg-secondary)',
+                        borderColor: 'var(--color-border)',
                     }}
                 >
                     {isMobile && (
@@ -120,9 +121,9 @@ export default function ClientChatPage() {
                             onClick={() => setShowRatesDrawer(true)}
                             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-95"
                             style={{
-                                background: 'rgba(74, 222, 128, 0.12)',
-                                border: '1px solid rgba(74, 222, 128, 0.3)',
-                                color: '#4ade80',
+                                background: 'var(--color-success-bg)',
+                                border: '1px solid var(--color-success-border)',
+                                color: 'var(--color-success)',
                             }}
                             aria-label="Voir les taux"
                         >
@@ -134,17 +135,19 @@ export default function ClientChatPage() {
                         <div
                             className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0"
                             style={{
-                                background: 'rgba(42, 128, 64, 0.25)',
-                                border: '1px solid rgba(74, 222, 128, 0.3)',
+                                background: 'var(--color-success-bg)',
+                                border: '1px solid var(--color-success-border)',
                             }}
                         >
-                            <span className="text-[10px] sm:text-xs font-bold" style={{ color: '#4ade80' }}>
+                            <span className="text-[10px] sm:text-xs font-bold"
+                                  style={{ color: 'var(--color-success)' }}>
                                 BTL
                             </span>
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[13px] sm:text-sm font-semibold text-white truncate">
+                                <span className="text-[13px] sm:text-sm font-semibold truncate"
+                                      style={{ color: 'var(--color-text-primary)' }}>
                                     {isMobile ? 'Salle des marchés' : 'Salle des marchés BTL'}
                                 </span>
                                 {traderId && (
@@ -154,7 +157,8 @@ export default function ClientChatPage() {
                                     />
                                 )}
                             </div>
-                            <span className="text-[10px] sm:text-[11px] truncate block" style={{ color: '#a8c4aa' }}>
+                            <span className="text-[10px] sm:text-[11px] truncate block"
+                                  style={{ color: 'var(--color-text-secondary)' }}>
                                 {traderId
                                     ? isTraderTyping
                                         ? "en train d'écrire..."
@@ -164,43 +168,35 @@ export default function ClientChatPage() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={logout}
-                        title="Déconnexion"
-                        className="w-10 h-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0 active:scale-95"
-                        style={{
-                            background: 'rgba(15, 58, 26, 0.4)',
-                            border: '1px solid rgba(42, 128, 64, 0.3)',
-                            color: '#a8c4aa',
-                        }}
-                        onMouseEnter={(e) => {
-                            if (!isMobile) {
-                                e.currentTarget.style.background = 'rgba(200, 16, 46, 0.15)'
-                                e.currentTarget.style.borderColor = 'rgba(200, 16, 46, 0.4)'
-                                e.currentTarget.style.color = '#fb7185'
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            if (!isMobile) {
-                                e.currentTarget.style.background = 'rgba(15, 58, 26, 0.4)'
-                                e.currentTarget.style.borderColor = 'rgba(42, 128, 64, 0.3)'
-                                e.currentTarget.style.color = '#a8c4aa'
-                            }
-                        }}
-                    >
-                        <LogOut size={14} />
-                    </button>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        <ThemeToggle />
+
+                        <button
+                            onClick={logout}
+                            title="Déconnexion"
+                            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95"
+                            style={{
+                                background: 'var(--color-bg-tertiary)',
+                                border: '1px solid var(--color-border)',
+                                color: 'var(--color-text-secondary)',
+                            }}
+                        >
+                            <LogOut size={14} />
+                        </button>
+                    </div>
                 </div>
 
-                {/* ─── MESSAGES ─── */}
+                {/* MESSAGES */}
                 <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 space-y-1.5 min-h-0">
                     {messages.length === 0 && (
                         <div className="flex flex-col items-center justify-center h-full text-center px-4">
                             <div className="text-4xl mb-3">💱</div>
-                            <p className="text-sm font-medium" style={{ color: '#a8c4aa' }}>
+                            <p className="text-sm font-medium"
+                               style={{ color: 'var(--color-text-secondary)' }}>
                                 Bienvenue sur BTL-FX
                             </p>
-                            <p className="text-xs mt-1 max-w-xs" style={{ color: '#5a8060' }}>
+                            <p className="text-xs mt-1 max-w-xs"
+                               style={{ color: 'var(--color-text-tertiary)' }}>
                                 Envoyez un message à votre trader pour commencer une négociation
                             </p>
                         </div>

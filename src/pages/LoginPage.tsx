@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLogin } from '@/hooks/useAuth'
 import { Lock, User, Eye, EyeOff, ArrowRight, Building2 } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 export default function LoginPage() {
     const navigate = useNavigate()
@@ -35,30 +36,43 @@ export default function LoginPage() {
     return (
         <div
             className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden"
-            style={{ background: '#070d09' }}
+            style={{ background: 'var(--color-bg-primary)' }}
         >
-            {/* Background animé — moins lourd sur mobile */}
+            {/* ─── ThemeToggle dans le coin haut-droit ─── */}
+            <div
+                className="absolute z-20"
+                style={{
+                    top: 'calc(1rem + env(safe-area-inset-top, 0))',
+                    right: '1rem',
+                }}
+            >
+                <ThemeToggle />
+            </div>
+
+            {/* Background animé radial */}
             <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                     background: `
-                        radial-gradient(circle at 20% 20%, rgba(74, 222, 128, 0.12) 0%, transparent 40%),
-                        radial-gradient(circle at 80% 80%, rgba(26, 92, 42, 0.18) 0%, transparent 40%),
-                        radial-gradient(circle at 50% 50%, rgba(15, 58, 26, 0.5) 0%, transparent 70%)
+                        radial-gradient(circle at 20% 20%, var(--color-success-bg) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 80%, var(--color-success-bg) 0%, transparent 40%),
+                        radial-gradient(circle at 50% 50%, var(--color-bg-tertiary) 0%, transparent 70%)
                     `,
                 }}
             />
+
+            {/* Grid décorative — desktop uniquement */}
             <div
                 className="absolute inset-0 pointer-events-none hidden md:block"
                 style={{
                     backgroundImage: `
-                        linear-gradient(rgba(26,92,42,0.08) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(26,92,42,0.08) 1px, transparent 1px)`,
+                        linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px)`,
                     backgroundSize: '40px 40px',
                 }}
             />
 
-            {/* Particules — uniquement sur desktop */}
+            {/* Particules — desktop uniquement */}
             <div className="hidden md:block">
                 {[...Array(4)].map((_, i) => (
                     <div
@@ -67,7 +81,8 @@ export default function LoginPage() {
                         style={{
                             width:  `${100 + i * 50}px`,
                             height: `${100 + i * 50}px`,
-                            background: `rgba(74, 222, 128, ${0.04 - i * 0.005})`,
+                            background: 'var(--color-success-bg)',
+                            opacity: 0.4 - i * 0.05,
                             top:    `${10 + i * 25}%`,
                             left:   `${10 + i * 25}%`,
                             filter: 'blur(40px)',
@@ -77,23 +92,23 @@ export default function LoginPage() {
                 ))}
             </div>
 
-            {/* Container principal — full width sur mobile, max-w sur desktop */}
+            {/* Container principal */}
             <div className="relative z-10 w-full max-w-md">
 
                 {/* Glow décoratif */}
                 <div
                     className="absolute inset-0 rounded-3xl blur-3xl opacity-50 pointer-events-none"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.3), rgba(26, 92, 42, 0.3))',
+                        background: 'linear-gradient(135deg, var(--color-success-bg), var(--color-accent-primary))',
                     }}
                 />
 
                 <div
                     className="relative rounded-3xl overflow-hidden"
                     style={{
-                        background: 'linear-gradient(180deg, rgba(15, 58, 26, 0.85), rgba(10, 31, 14, 0.95))',
-                        border: '1px solid rgba(74, 222, 128, 0.15)',
-                        boxShadow: '0 25px 80px rgba(0, 0, 0, 0.5)',
+                        background: 'var(--color-bg-elevated)',
+                        border: '1px solid var(--color-border)',
+                        boxShadow: 'var(--shadow-lg)',
                         backdropFilter: 'blur(20px)',
                     }}
                 >
@@ -102,16 +117,15 @@ export default function LoginPage() {
                     <div
                         className="px-6 sm:px-8 pt-8 pb-6 text-center relative"
                         style={{
-                            background: 'linear-gradient(180deg, rgba(26, 92, 42, 0.4), transparent)',
+                            background: 'linear-gradient(180deg, var(--color-success-bg), transparent)',
                         }}
                     >
-                        {/* Logo BTL animé */}
                         <div className="flex justify-center mb-4">
                             <div className="relative">
                                 <div
                                     className="absolute inset-0 rounded-3xl blur-xl opacity-60"
                                     style={{
-                                        background: 'linear-gradient(135deg, #4ade80, #2a8040)',
+                                        background: 'linear-gradient(135deg, var(--color-success), var(--color-accent-secondary))',
                                         animation: 'pulseRing 3s ease-in-out infinite',
                                     }}
                                 />
@@ -119,7 +133,7 @@ export default function LoginPage() {
                                     className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-3xl flex items-center justify-center"
                                     style={{
                                         background: 'linear-gradient(135deg, #ffffff, #f0f9f1)',
-                                        boxShadow: '0 12px 32px rgba(74, 222, 128, 0.3)',
+                                        boxShadow: 'var(--shadow-glow)',
                                     }}
                                 >
                                     <img
@@ -127,7 +141,6 @@ export default function LoginPage() {
                                         alt="BTL"
                                         className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
                                         onError={(e) => {
-                                            // Fallback si logo manquant
                                             (e.target as HTMLImageElement).style.display = 'none'
                                             const parent = (e.target as HTMLImageElement).parentElement
                                             if (parent) {
@@ -140,17 +153,18 @@ export default function LoginPage() {
                         </div>
 
                         <div className="flex items-center justify-center gap-1.5 mb-2">
-                            <Building2 size={14} style={{ color: '#a8c4aa' }} />
+                            <Building2 size={14} style={{ color: 'var(--color-text-secondary)' }} />
                             <span className="text-[10px] uppercase tracking-widest font-semibold"
-                                  style={{ color: '#a8c4aa' }}>
+                                  style={{ color: 'var(--color-text-secondary)' }}>
                                 Banque Tuniso-Libyenne
                             </span>
                         </div>
 
-                        <h1 className="font-bold text-xl sm:text-2xl tracking-tight mb-1 text-white">
+                        <h1 className="font-bold text-xl sm:text-2xl tracking-tight mb-1"
+                            style={{ color: 'var(--color-text-primary)' }}>
                             BTL FX
                         </h1>
-                        <p className="text-[11px] sm:text-xs" style={{ color: '#a8c4aa' }}>
+                        <p className="text-[11px] sm:text-xs" style={{ color: 'var(--color-text-secondary)' }}>
                             Plateforme de négociation de devises
                         </p>
                     </div>
@@ -161,7 +175,7 @@ export default function LoginPage() {
                         {/* Username */}
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
-                                   style={{ color: '#a8c4aa' }}>
+                                   style={{ color: 'var(--color-text-secondary)' }}>
                                 <User size={10} />
                                 Identifiant
                             </label>
@@ -176,14 +190,13 @@ export default function LoginPage() {
                                     autoCorrect="off"
                                     className="w-full px-4 py-3 rounded-xl focus:outline-none transition-all"
                                     style={{
-                                        background: 'rgba(0, 0, 0, 0.4)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        color: '#fff',
-                                        // ✅ font-size 16px = pas de zoom iOS au focus
+                                        background: 'var(--color-bg-input)',
+                                        border: '1px solid var(--color-border-subtle)',
+                                        color: 'var(--color-text-primary)',
                                         fontSize: '16px',
                                     }}
-                                    onFocus={(e) => (e.target.style.borderColor = 'rgba(74, 222, 128, 0.5)')}
-                                    onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.08)')}
+                                    onFocus={(e) => (e.target.style.borderColor = 'var(--color-success-border)')}
+                                    onBlur={(e) => (e.target.style.borderColor = 'var(--color-border-subtle)')}
                                 />
                             </div>
                         </div>
@@ -191,7 +204,7 @@ export default function LoginPage() {
                         {/* Password */}
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
-                                   style={{ color: '#a8c4aa' }}>
+                                   style={{ color: 'var(--color-text-secondary)' }}>
                                 <Lock size={10} />
                                 Mot de passe
                             </label>
@@ -204,19 +217,19 @@ export default function LoginPage() {
                                     autoComplete="current-password"
                                     className="w-full px-4 py-3 pr-12 rounded-xl focus:outline-none transition-all"
                                     style={{
-                                        background: 'rgba(0, 0, 0, 0.4)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        color: '#fff',
+                                        background: 'var(--color-bg-input)',
+                                        border: '1px solid var(--color-border-subtle)',
+                                        color: 'var(--color-text-primary)',
                                         fontSize: '16px',
                                     }}
-                                    onFocus={(e) => (e.target.style.borderColor = 'rgba(74, 222, 128, 0.5)')}
-                                    onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.08)')}
+                                    onFocus={(e) => (e.target.style.borderColor = 'var(--color-success-border)')}
+                                    onBlur={(e) => (e.target.style.borderColor = 'var(--color-border-subtle)')}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center"
-                                    style={{ color: '#5a8060' }}
+                                    style={{ color: 'var(--color-text-tertiary)' }}
                                     tabIndex={-1}
                                     aria-label={showPassword ? 'Masquer' : 'Afficher'}
                                 >
@@ -229,16 +242,16 @@ export default function LoginPage() {
                             <div
                                 className="px-3 py-2 rounded-lg text-[12px] sm:text-xs"
                                 style={{
-                                    background: 'rgba(200, 16, 46, 0.15)',
-                                    border: '1px solid rgba(251, 113, 133, 0.3)',
-                                    color: '#fb7185',
+                                    background: 'var(--color-danger-bg)',
+                                    border: '1px solid var(--color-danger-border)',
+                                    color: 'var(--color-danger)',
                                 }}
                             >
                                 {error}
                             </div>
                         )}
 
-                        {/* Bouton submit — gros et tactile sur mobile */}
+                        {/* Bouton submit */}
                         <button
                             type="submit"
                             disabled={login.isPending}
@@ -248,9 +261,9 @@ export default function LoginPage() {
                                        disabled:opacity-60 disabled:cursor-not-allowed
                                        min-h-[48px]"
                             style={{
-                                background: 'linear-gradient(135deg, #2a8040 0%, #1a5c2a 100%)',
-                                border: '1px solid rgba(74, 222, 128, 0.4)',
-                                boxShadow: '0 8px 30px rgba(26, 92, 42, 0.4)',
+                                background: 'linear-gradient(135deg, var(--color-accent-secondary) 0%, var(--color-accent-primary) 100%)',
+                                border: '1px solid var(--color-success-border)',
+                                boxShadow: 'var(--shadow-glow)',
                             }}
                         >
                             {login.isPending ? (
@@ -275,7 +288,7 @@ export default function LoginPage() {
                                 type="button"
                                 onClick={() => navigate('/rates')}
                                 className="text-[11px] underline transition-colors"
-                                style={{ color: '#a8c4aa' }}
+                                style={{ color: 'var(--color-text-secondary)' }}
                             >
                                 Consulter les taux de change
                             </button>
@@ -286,9 +299,9 @@ export default function LoginPage() {
                     <div
                         className="px-6 sm:px-8 py-3 text-center text-[10px]"
                         style={{
-                            background: 'rgba(0, 0, 0, 0.25)',
-                            color: '#5a8060',
-                            borderTop: '1px solid rgba(42, 128, 64, 0.15)',
+                            background: 'var(--color-bg-tertiary)',
+                            color: 'var(--color-text-tertiary)',
+                            borderTop: '1px solid var(--color-border-subtle)',
                         }}
                     >
                         © 2026 BTL — Système sécurisé

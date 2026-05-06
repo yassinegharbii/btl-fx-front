@@ -18,7 +18,6 @@ export function TicketCard({ threadId }: Props) {
         </div>
     )
 
-    // Affiche le ticket actif (PROPOSED ou ACCEPTED_BY_CLIENT)
     const active = tickets?.find(
         (t) => t.order_status === 'PROPOSED' || t.order_status === 'ACCEPTED_BY_CLIENT'
     )
@@ -39,26 +38,26 @@ function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boole
     const isProposed = ticket.order_status === 'PROPOSED'
 
     return (
-        // ✅ Mobile : full width. Desktop : 288px (w-72)
-        <div className="w-full sm:w-72 bg-navy-800 border border-fx-blue-dim/25 rounded-2xl p-3 sm:p-4 space-y-3"
+        <div className="w-full sm:w-72 rounded-2xl p-3 sm:p-4 space-y-3"
              style={{
-                 background: 'rgba(15, 58, 26, 0.6)',
-                 border: '1px solid rgba(74, 222, 128, 0.2)',
+                 background: 'var(--color-bg-card)',
+                 border: '1px solid var(--color-border)',
              }}>
             {/* Header */}
             <div className="flex items-center justify-between">
-        <span className="font-mono-nums text-[11px] tracking-wide" style={{ color: '#5a8060' }}>
-          {ticket.ref_ticket}
-        </span>
+                <span className="font-mono-nums text-[11px] tracking-wide"
+                      style={{ color: 'var(--color-text-tertiary)' }}>
+                    {ticket.ref_ticket}
+                </span>
                 <TicketBadge status={ticket.order_status} />
             </div>
 
             {/* Infos */}
             <div className="space-y-1.5">
                 <TicketRow label="Opération" value={
-                    <span style={{ color: ticket.operation === 'BUY' ? '#4ade80' : '#fb7185' }}>
-            {ticket.operation === 'BUY' ? 'Achat' : 'Vente'} {ticket.currency_code}
-          </span>
+                    <span style={{ color: ticket.operation === 'BUY' ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                        {ticket.operation === 'BUY' ? 'Achat' : 'Vente'} {ticket.currency_code}
+                    </span>
                 } />
                 <TicketRow label="Montant"
                            value={`${ticket.order_amount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} ${ticket.currency_code}`}
@@ -70,20 +69,23 @@ function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boole
             {/* Taux négocié */}
             <div className="rounded-xl py-3 text-center"
                  style={{
-                     background: 'rgba(0, 0, 0, 0.3)',
-                     border: '1px solid rgba(255, 255, 255, 0.05)',
+                     background: 'var(--color-bg-tertiary)',
+                     border: '1px solid var(--color-border-subtle)',
                  }}>
                 <div className="text-[10px] uppercase tracking-widest mb-1"
-                     style={{ color: 'rgba(255, 255, 255, 0.3)' }}>
+                     style={{ color: 'var(--color-text-tertiary)' }}>
                     Taux négocié
                 </div>
-                <div className="font-mono-nums text-2xl font-semibold text-white">
+                <div className="font-mono-nums text-2xl font-semibold"
+                     style={{ color: 'var(--color-text-primary)' }}>
                     {ticket.negotiated_price?.toFixed(4)}
-                    <span className="text-sm ml-1" style={{ color: 'rgba(255, 255, 255, 0.3)' }}>TND</span>
+                    <span className="text-sm ml-1" style={{ color: 'var(--color-text-tertiary)' }}>
+                        TND
+                    </span>
                 </div>
                 {ticket.tnd_equivalent && (
                     <div className="text-xs font-mono-nums mt-1"
-                         style={{ color: 'rgba(255, 255, 255, 0.3)' }}>
+                         style={{ color: 'var(--color-text-tertiary)' }}>
                         = {ticket.tnd_equivalent.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} TND
                     </div>
                 )}
@@ -93,8 +95,8 @@ function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boole
             {ticket.trader_comment && (
                 <p className="text-xs italic border-l-2 pl-2"
                    style={{
-                       color: 'rgba(255, 255, 255, 0.5)',
-                       borderColor: 'rgba(255, 255, 255, 0.15)',
+                       color: 'var(--color-text-secondary)',
+                       borderColor: 'var(--color-border)',
                    }}>
                     {ticket.trader_comment}
                 </p>
@@ -103,7 +105,7 @@ function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boole
             {/* Barre d'expiration */}
             {isProposed && <ExpiryBar validUntil={ticket.valid_until} createdAt={ticket.created_at} />}
 
-            {/* Actions client — boutons tactiles */}
+            {/* Actions client */}
             {isClient && isProposed && (
                 <div className="flex gap-2 pt-1">
                     <Button
@@ -133,12 +135,12 @@ function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boole
 function TicketRow({ label, value }: { label: string; value: React.ReactNode }) {
     return (
         <div className="flex justify-between items-center">
-      <span className="text-[11px]" style={{ color: 'rgba(255, 255, 255, 0.4)' }}>
-        {label}
-      </span>
-            <span className="text-xs font-mono-nums" style={{ color: 'rgba(255, 255, 255, 0.85)' }}>
-        {value}
-      </span>
+            <span className="text-[11px]" style={{ color: 'var(--color-text-tertiary)' }}>
+                {label}
+            </span>
+            <span className="text-xs font-mono-nums" style={{ color: 'var(--color-text-primary)' }}>
+                {value}
+            </span>
         </div>
     )
 }

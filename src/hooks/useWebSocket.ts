@@ -33,7 +33,8 @@ export function useWebSocket(threadId: number | null) {
     Object.values(typingTimers.current).forEach(clearTimeout)
     typingTimers.current = {}
 
-    const url = `ws://localhost:8000/ws/threads/${threadId}?token=${token}`
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws"
+    const url = `${protocol}://${window.location.host}/ws/threads/${threadId}?token=${token}`
     const socket = new WebSocket(url)
     ws.current = socket
 

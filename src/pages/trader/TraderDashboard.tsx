@@ -15,7 +15,9 @@ import { TraderSidebar } from '@/components/chat/TraderSidebar'
 import { useAuthStore }  from '@/stores/auth.store'
 import { useIsMobile }   from '@/hooks/useIsMobile'
 import { useDashboard }  from '@/hooks/useDashboard'
+import { useTheme }      from '@/theme'
 import { MobileDrawer }  from '@/components/ui/MobileDrawer'
+import { ThemeToggle }   from '@/components/ui/ThemeToggle'
 import type {
     DashboardPeriod, DashboardTopClient, DashboardRecentActivity, DashboardTotals,
 } from '@/types/dashboard.types'
@@ -27,19 +29,19 @@ interface StatCardConfig {
     key:    StatKey
     label:  string
     icon:   LucideIcon
-    color:  string
-    bg:     string
-    border: string
+    /** Couleur sémantique (var CSS sans le -bg/-border suffixe) */
+    semantic: 'success' | 'warning' | 'danger' | 'info' | 'neutral'
 }
 
+/* ─── Configuration des stats avec couleurs sémantiques ─── */
 const STAT_CARDS: StatCardConfig[] = [
-    { key: 'total',     label: 'Total',          icon: BarChart3,      color: '#4ade80', bg: 'rgba(74, 222, 128, 0.1)',  border: 'rgba(74, 222, 128, 0.3)' },
-    { key: 'proposed',  label: 'En cours',       icon: Clock,          color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.1)',  border: 'rgba(251, 191, 36, 0.3)' },
-    { key: 'accepted',  label: 'Acceptés',       icon: CheckCircle2,   color: '#4ade80', bg: 'rgba(74, 222, 128, 0.12)', border: 'rgba(74, 222, 128, 0.35)' },
-    { key: 'declined',  label: 'Refusés',        icon: XCircle,        color: '#fb7185', bg: 'rgba(251, 113, 133, 0.1)', border: 'rgba(251, 113, 133, 0.3)' },
-    { key: 'confirmed', label: 'Pris en charge', icon: ClipboardCheck, color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.1)',  border: 'rgba(96, 165, 250, 0.3)' },
-    { key: 'completed', label: 'Finalisés',      icon: Award,          color: '#34d399', bg: 'rgba(52, 211, 153, 0.12)', border: 'rgba(52, 211, 153, 0.35)' },
-    { key: 'expired',   label: 'Expirés',        icon: Hourglass,      color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)', border: 'rgba(148, 163, 184, 0.25)' },
+    { key: 'total',     label: 'Total',          icon: BarChart3,      semantic: 'success' },
+    { key: 'proposed',  label: 'En cours',       icon: Clock,          semantic: 'warning' },
+    { key: 'accepted',  label: 'Acceptés',       icon: CheckCircle2,   semantic: 'success' },
+    { key: 'declined',  label: 'Refusés',        icon: XCircle,        semantic: 'danger' },
+    { key: 'confirmed', label: 'Pris en charge', icon: ClipboardCheck, semantic: 'info' },
+    { key: 'completed', label: 'Finalisés',      icon: Award,          semantic: 'success' },
+    { key: 'expired',   label: 'Expirés',        icon: Hourglass,      semantic: 'neutral' },
 ]
 
 const PERIODS: Array<{ key: DashboardPeriod; label: string; mobileLabel: string }> = [
@@ -62,7 +64,10 @@ export default function TraderDashboard() {
     const { data, isLoading, refetch, isFetching } = useDashboard(period)
 
     return (
-        <div className="flex h-screen overflow-hidden" style={{ background: '#070d09' }}>
+        <div
+            className="flex h-screen overflow-hidden"
+            style={{ background: 'var(--color-bg-primary)' }}
+        >
 
             {!isMobile && (
                 <aside className="w-72 flex-shrink-0">
@@ -84,11 +89,12 @@ export default function TraderDashboard() {
 
             <main className="flex-1 flex flex-col relative overflow-hidden">
 
+                {/* HEADER */}
                 <div
                     className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b flex-shrink-0 gap-2"
                     style={{
-                        background: 'rgba(15, 58, 26, 0.8)',
-                        borderColor: 'rgba(42, 128, 64, 0.3)',
+                        background: 'var(--color-bg-secondary)',
+                        borderColor: 'var(--color-border)',
                     }}
                 >
                     {isMobile && (
@@ -96,9 +102,9 @@ export default function TraderDashboard() {
                             onClick={() => setShowSidebar(true)}
                             className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-95"
                             style={{
-                                background: 'rgba(74, 222, 128, 0.12)',
-                                border: '1px solid rgba(74, 222, 128, 0.3)',
-                                color: '#4ade80',
+                                background: 'var(--color-success-bg)',
+                                border: '1px solid var(--color-success-border)',
+                                color: 'var(--color-success)',
                             }}
                         >
                             <Menu size={18} />
@@ -109,30 +115,40 @@ export default function TraderDashboard() {
                         <div
                             className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                             style={{
-                                background: 'rgba(74, 222, 128, 0.15)',
-                                border: '1px solid rgba(74, 222, 128, 0.3)',
+                                background: 'var(--color-success-bg)',
+                                border: '1px solid var(--color-success-border)',
                             }}
                         >
-                            <BarChart3 size={16} style={{ color: '#4ade80' }} />
+                            <BarChart3 size={16} style={{ color: 'var(--color-success)' }} />
                         </div>
                         <div className="min-w-0">
-                            <h1 className="text-xs sm:text-sm font-semibold text-white">Tableau de bord</h1>
-                            <p className="text-[10px] sm:text-[11px] mt-0.5 truncate" style={{ color: '#a8c4aa' }}>
+                            <h1
+                                className="text-xs sm:text-sm font-semibold"
+                                style={{ color: 'var(--color-text-primary)' }}
+                            >
+                                Tableau de bord
+                            </h1>
+                            <p
+                                className="text-[10px] sm:text-[11px] mt-0.5 truncate"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                            >
                                 {user?.full_name ?? user?.username} · Vue d'ensemble
                             </p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2 flex-shrink-0">
+                        <ThemeToggle />
+
                         <button
                             onClick={() => refetch()}
                             disabled={isFetching}
                             title="Rafraîchir"
                             className="w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 disabled:opacity-50"
                             style={{
-                                background: 'rgba(74, 222, 128, 0.08)',
-                                border: '1px solid rgba(74, 222, 128, 0.25)',
-                                color: '#4ade80',
+                                background: 'var(--color-success-bg)',
+                                border: '1px solid var(--color-success-border)',
+                                color: 'var(--color-success)',
                             }}
                         >
                             <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
@@ -142,9 +158,9 @@ export default function TraderDashboard() {
                             title="Déconnexion"
                             className="w-10 h-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0 active:scale-95"
                             style={{
-                                background: 'rgba(15, 58, 26, 0.4)',
-                                border: '1px solid rgba(42, 128, 64, 0.3)',
-                                color: '#a8c4aa',
+                                background: 'var(--color-bg-tertiary)',
+                                border: '1px solid var(--color-border)',
+                                color: 'var(--color-text-secondary)',
                             }}
                         >
                             <LogOut size={14} />
@@ -158,7 +174,7 @@ export default function TraderDashboard() {
 
                     {isLoading ? (
                         <div className="flex justify-center py-12">
-                            <RefreshCw size={20} className="animate-spin" style={{ color: '#4ade80' }} />
+                            <RefreshCw size={20} className="animate-spin" style={{ color: 'var(--color-success)' }} />
                         </div>
                     ) : data ? (
                         <>
@@ -187,6 +203,7 @@ export default function TraderDashboard() {
     )
 }
 
+/* ─── PERIOD FILTER ─── */
 function PeriodFilter({
                           period, onChange,
                       }: { period: DashboardPeriod; onChange: (p: DashboardPeriod) => void }) {
@@ -196,8 +213,8 @@ function PeriodFilter({
         <div
             className="p-1 rounded-xl flex gap-1 overflow-x-auto"
             style={{
-                background: 'rgba(15, 58, 26, 0.4)',
-                border: '1px solid rgba(42, 128, 64, 0.25)',
+                background: 'var(--color-bg-tertiary)',
+                border: '1px solid var(--color-border-subtle)',
                 scrollbarWidth: 'none',
             }}
         >
@@ -209,10 +226,14 @@ function PeriodFilter({
                         onClick={() => onChange(p.key)}
                         className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap"
                         style={{
-                            background: active ? 'linear-gradient(135deg, #2a8040, #1a5c2a)' : 'transparent',
-                            border: active ? '1px solid rgba(74, 222, 128, 0.4)' : '1px solid transparent',
-                            color: active ? '#fff' : '#a8c4aa',
-                            boxShadow: active ? '0 4px 12px rgba(26, 92, 42, 0.3)' : 'none',
+                            background: active
+                                ? 'linear-gradient(135deg, var(--color-accent-secondary), var(--color-accent-primary))'
+                                : 'transparent',
+                            border: active
+                                ? '1px solid var(--color-success-border)'
+                                : '1px solid transparent',
+                            color: active ? '#fff' : 'var(--color-text-secondary)',
+                            boxShadow: active ? 'var(--shadow-glow)' : 'none',
                             minHeight: 36,
                         }}
                     >
@@ -224,6 +245,7 @@ function PeriodFilter({
     )
 }
 
+/* ─── STATS GRID ─── */
 function StatsGrid({ totals }: { totals: DashboardTotals }) {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-3">
@@ -236,26 +258,29 @@ function StatsGrid({ totals }: { totals: DashboardTotals }) {
 
 function StatCard({ config, value }: { config: StatCardConfig; value: number }) {
     const Icon = config.icon
+    const colorVar  = `var(--color-${config.semantic})`
+    const bgVar     = `var(--color-${config.semantic}-bg)`
+    const borderVar = `var(--color-${config.semantic}-border)`
 
     return (
         <div
             className="p-3 sm:p-4 rounded-2xl transition-transform hover:scale-[1.02]"
             style={{
-                background: 'linear-gradient(135deg, rgba(15, 58, 26, 0.6), rgba(10, 31, 14, 0.6))',
-                border: `1px solid ${config.border}`,
+                background: 'var(--color-bg-card)',
+                border: `1px solid ${borderVar}`,
             }}
         >
             <div className="flex items-center justify-between mb-2">
                 <div
                     className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: config.bg, border: `1px solid ${config.border}` }}
+                    style={{ background: bgVar, border: `1px solid ${borderVar}` }}
                 >
-                    <Icon size={13} style={{ color: config.color }} />
+                    <Icon size={13} style={{ color: colorVar }} />
                 </div>
                 {value > 0 && (
                     <span
                         className="text-[8px] uppercase tracking-widest font-semibold"
-                        style={{ color: config.color, opacity: 0.7 }}
+                        style={{ color: colorVar, opacity: 0.7 }}
                     >
                         Actif
                     </span>
@@ -263,33 +288,50 @@ function StatCard({ config, value }: { config: StatCardConfig; value: number }) 
             </div>
             <div
                 className="text-2xl sm:text-3xl font-bold font-mono-nums leading-none mb-1"
-                style={{ color: config.color }}
+                style={{ color: colorVar }}
             >
                 {value}
             </div>
-            <div className="text-[10px] uppercase tracking-wider" style={{ color: '#a8c4aa' }}>
+            <div
+                className="text-[10px] uppercase tracking-wider"
+                style={{ color: 'var(--color-text-secondary)' }}
+            >
                 {config.label}
             </div>
         </div>
     )
 }
 
+/* ─── EVOLUTION CHART ─── */
 function EvolutionChart({ data }: { data: { date: string; label: string; count: number; accepted: number }[] }) {
+    const { theme } = useTheme()
+    const isDark = theme === 'dark'
+
+    // Couleurs adaptées au thème pour le graphique recharts
+    const colorTotal    = isDark ? '#4ade80' : '#16a34a'
+    const colorAccepted = isDark ? '#fbbf24' : '#d97706'
+    const gridColor     = isDark ? 'rgba(42, 128, 64, 0.2)' : 'rgba(42, 128, 64, 0.15)'
+    const tickColor     = isDark ? '#a8c4aa' : '#3d5a42'
+    const axisColor     = isDark ? 'rgba(42, 128, 64, 0.3)' : 'rgba(42, 128, 64, 0.2)'
+
     return (
         <div
             className="p-4 sm:p-5 rounded-2xl h-full"
             style={{
-                background: 'linear-gradient(180deg, rgba(15, 58, 26, 0.5), rgba(10, 31, 14, 0.5))',
-                border: '1px solid rgba(42, 128, 64, 0.3)',
+                background: 'var(--color-bg-card)',
+                border: '1px solid var(--color-border)',
             }}
         >
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                        <Activity size={14} style={{ color: '#4ade80' }} />
+                    <h3
+                        className="text-sm font-semibold flex items-center gap-2"
+                        style={{ color: 'var(--color-text-primary)' }}
+                    >
+                        <Activity size={14} style={{ color: 'var(--color-success)' }} />
                         Évolution sur 7 jours
                     </h3>
-                    <p className="text-[11px] mt-0.5" style={{ color: '#a8c4aa' }}>
+                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
                         Tickets créés vs acceptés
                     </p>
                 </div>
@@ -301,59 +343,60 @@ function EvolutionChart({ data }: { data: { date: string; label: string; count: 
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%"   stopColor="#4ade80" stopOpacity={0.4} />
-                                <stop offset="100%" stopColor="#4ade80" stopOpacity={0.02} />
+                                <stop offset="0%"   stopColor={colorTotal} stopOpacity={0.4} />
+                                <stop offset="100%" stopColor={colorTotal} stopOpacity={0.02} />
                             </linearGradient>
                             <linearGradient id="colorAccepted" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%"   stopColor="#fbbf24" stopOpacity={0.4} />
-                                <stop offset="100%" stopColor="#fbbf24" stopOpacity={0.02} />
+                                <stop offset="0%"   stopColor={colorAccepted} stopOpacity={0.4} />
+                                <stop offset="100%" stopColor={colorAccepted} stopOpacity={0.02} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(42, 128, 64, 0.2)" />
+                        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                         <XAxis
                             dataKey="label"
-                            stroke="#5a8060"
-                            tick={{ fill: '#a8c4aa', fontSize: 10 }}
+                            stroke={tickColor}
+                            tick={{ fill: tickColor, fontSize: 10 }}
                             tickLine={false}
-                            axisLine={{ stroke: 'rgba(42, 128, 64, 0.3)' }}
+                            axisLine={{ stroke: axisColor }}
                         />
                         <YAxis
-                            stroke="#5a8060"
-                            tick={{ fill: '#a8c4aa', fontSize: 10 }}
+                            stroke={tickColor}
+                            tick={{ fill: tickColor, fontSize: 10 }}
                             tickLine={false}
-                            axisLine={{ stroke: 'rgba(42, 128, 64, 0.3)' }}
+                            axisLine={{ stroke: axisColor }}
                             allowDecimals={false}
                         />
                         <Tooltip
                             contentStyle={{
-                                background: 'rgba(15, 58, 26, 0.95)',
-                                border: '1px solid rgba(74, 222, 128, 0.4)',
+                                background: isDark ? 'rgba(15, 58, 26, 0.95)' : '#ffffff',
+                                border: `1px solid ${isDark ? 'rgba(74, 222, 128, 0.4)' : 'rgba(22, 163, 74, 0.3)'}`,
                                 borderRadius: 8,
                                 fontSize: 12,
+                                color: isDark ? '#fff' : '#0a1f0e',
                             }}
-                            labelStyle={{ color: '#a8c4aa', fontSize: 10, fontWeight: 600 }}
-                            itemStyle={{ color: '#fff' }}
-                            cursor={{ stroke: 'rgba(74, 222, 128, 0.3)', strokeWidth: 1 }}
+                            labelStyle={{ color: tickColor, fontSize: 10, fontWeight: 600 }}
+                            itemStyle={{ color: isDark ? '#fff' : '#0a1f0e' }}
+                            cursor={{ stroke: colorTotal, strokeOpacity: 0.3, strokeWidth: 1 }}
                         />
                         <Area
                             type="monotone"
                             dataKey="count"
                             name="Total"
-                            stroke="#4ade80"
+                            stroke={colorTotal}
                             strokeWidth={2}
                             fill="url(#colorCount)"
-                            dot={{ fill: '#4ade80', r: 3 }}
-                            activeDot={{ r: 5, fill: '#4ade80', stroke: '#fff', strokeWidth: 2 }}
+                            dot={{ fill: colorTotal, r: 3 }}
+                            activeDot={{ r: 5, fill: colorTotal, stroke: '#fff', strokeWidth: 2 }}
                         />
                         <Area
                             type="monotone"
                             dataKey="accepted"
                             name="Acceptés"
-                            stroke="#fbbf24"
+                            stroke={colorAccepted}
                             strokeWidth={2}
                             fill="url(#colorAccepted)"
-                            dot={{ fill: '#fbbf24', r: 3 }}
-                            activeDot={{ r: 5, fill: '#fbbf24', stroke: '#fff', strokeWidth: 2 }}
+                            dot={{ fill: colorAccepted, r: 3 }}
+                            activeDot={{ r: 5, fill: colorAccepted, stroke: '#fff', strokeWidth: 2 }}
                         />
                     </AreaChart>
                 </ResponsiveContainer>
@@ -366,17 +409,28 @@ function Legend() {
     return (
         <div className="hidden sm:flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#4ade80' }} />
-                <span className="text-[10px]" style={{ color: '#a8c4aa' }}>Total</span>
+                <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ background: 'var(--color-success)' }}
+                />
+                <span className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>
+                    Total
+                </span>
             </div>
             <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#fbbf24' }} />
-                <span className="text-[10px]" style={{ color: '#a8c4aa' }}>Acceptés</span>
+                <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ background: 'var(--color-warning)' }}
+                />
+                <span className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>
+                    Acceptés
+                </span>
             </div>
         </div>
     )
 }
 
+/* ─── TOP CLIENTS ─── */
 function TopClientsCard({ clients }: { clients: DashboardTopClient[] }) {
     const maxTickets = Math.max(...clients.map((c) => c.tickets), 1)
 
@@ -384,17 +438,20 @@ function TopClientsCard({ clients }: { clients: DashboardTopClient[] }) {
         <div
             className="p-4 sm:p-5 rounded-2xl h-full"
             style={{
-                background: 'linear-gradient(180deg, rgba(15, 58, 26, 0.5), rgba(10, 31, 14, 0.5))',
-                border: '1px solid rgba(42, 128, 64, 0.3)',
+                background: 'var(--color-bg-card)',
+                border: '1px solid var(--color-border)',
             }}
         >
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                        <Users size={14} style={{ color: '#4ade80' }} />
+                    <h3
+                        className="text-sm font-semibold flex items-center gap-2"
+                        style={{ color: 'var(--color-text-primary)' }}
+                    >
+                        <Users size={14} style={{ color: 'var(--color-success)' }} />
                         Top clients
                     </h3>
-                    <p className="text-[11px] mt-0.5" style={{ color: '#a8c4aa' }}>
+                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
                         Par volume de tickets
                     </p>
                 </div>
@@ -402,8 +459,14 @@ function TopClientsCard({ clients }: { clients: DashboardTopClient[] }) {
 
             {clients.length === 0 ? (
                 <div className="py-8 text-center">
-                    <Users size={24} className="mx-auto mb-2 opacity-30" style={{ color: '#a8c4aa' }} />
-                    <p className="text-xs" style={{ color: '#5a8060' }}>Aucun ticket</p>
+                    <Users
+                        size={24}
+                        className="mx-auto mb-2 opacity-30"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    />
+                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                        Aucun ticket
+                    </p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -418,19 +481,31 @@ function TopClientsCard({ clients }: { clients: DashboardTopClient[] }) {
                                         <span
                                             className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
                                             style={{
-                                                background: idx === 0 ? '#fbbf24' : 'rgba(74, 222, 128, 0.2)',
-                                                color: idx === 0 ? '#0a1f0e' : '#4ade80',
+                                                background: idx === 0
+                                                    ? 'var(--color-warning)'
+                                                    : 'var(--color-success-bg)',
+                                                color: idx === 0
+                                                    ? '#0a1f0e'
+                                                    : 'var(--color-success)',
                                             }}
                                         >
                                             {idx + 1}
                                         </span>
-                                        <span className="text-xs font-medium text-white truncate">{name}</span>
+                                        <span
+                                            className="text-xs font-medium truncate"
+                                            style={{ color: 'var(--color-text-primary)' }}
+                                        >
+                                            {name}
+                                        </span>
                                     </div>
                                     <div className="flex items-center gap-2 flex-shrink-0">
-                                        <span className="text-[10px]" style={{ color: '#a8c4aa' }}>
+                                        <span className="text-[10px]" style={{ color: 'var(--color-text-secondary)' }}>
                                             {c.success_rate}%
                                         </span>
-                                        <span className="text-xs font-mono-nums font-bold" style={{ color: '#4ade80' }}>
+                                        <span
+                                            className="text-xs font-mono-nums font-bold"
+                                            style={{ color: 'var(--color-success)' }}
+                                        >
                                             {c.tickets}
                                         </span>
                                     </div>
@@ -438,14 +513,14 @@ function TopClientsCard({ clients }: { clients: DashboardTopClient[] }) {
 
                                 <div
                                     className="h-1.5 rounded-full overflow-hidden"
-                                    style={{ background: 'rgba(255,255,255,0.05)' }}
+                                    style={{ background: 'var(--color-bg-tertiary)' }}
                                 >
                                     <div
                                         className="h-full rounded-full transition-all duration-500"
                                         style={{
                                             width: `${pct}%`,
-                                            background: 'linear-gradient(90deg, #2a8040, #4ade80)',
-                                            boxShadow: '0 0 6px rgba(74, 222, 128, 0.4)',
+                                            background: 'linear-gradient(90deg, var(--color-accent-secondary), var(--color-success))',
+                                            boxShadow: 'var(--shadow-glow)',
                                         }}
                                     />
                                 </div>
@@ -458,14 +533,15 @@ function TopClientsCard({ clients }: { clients: DashboardTopClient[] }) {
     )
 }
 
-const STATUS_ICONS: Record<OrderStatus, { icon: LucideIcon; color: string; label: string }> = {
-    PROPOSED:            { icon: Clock,          color: '#fbbf24', label: 'Proposé' },
-    ACCEPTED_BY_CLIENT:  { icon: CheckCircle2,   color: '#4ade80', label: 'Accepté' },
-    DECLINED_BY_CLIENT:  { icon: XCircle,        color: '#fb7185', label: 'Refusé' },
-    CONFIRMED_BY_BRANCH: { icon: ClipboardCheck, color: '#60a5fa', label: 'Pris en charge' },
-    COMPLETED:           { icon: Award,          color: '#34d399', label: 'Finalisé' },
-    EXPIRED:             { icon: Hourglass,      color: '#94a3b8', label: 'Expiré' },
-    CANCELLED:           { icon: XCircle,        color: '#fb7185', label: 'Annulé' },
+/* ─── RECENT ACTIVITY ─── */
+const STATUS_CONFIG: Record<OrderStatus, { icon: LucideIcon; semantic: string; label: string }> = {
+    PROPOSED:            { icon: Clock,          semantic: 'warning', label: 'Proposé' },
+    ACCEPTED_BY_CLIENT:  { icon: CheckCircle2,   semantic: 'success', label: 'Accepté' },
+    DECLINED_BY_CLIENT:  { icon: XCircle,        semantic: 'danger',  label: 'Refusé' },
+    CONFIRMED_BY_BRANCH: { icon: ClipboardCheck, semantic: 'info',    label: 'Pris en charge' },
+    COMPLETED:           { icon: Award,          semantic: 'success', label: 'Finalisé' },
+    EXPIRED:             { icon: Hourglass,      semantic: 'neutral', label: 'Expiré' },
+    CANCELLED:           { icon: XCircle,        semantic: 'danger',  label: 'Annulé' },
 }
 
 function timeAgo(iso: string | null): string {
@@ -481,10 +557,6 @@ function timeAgo(iso: string | null): string {
     return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })
 }
 
-/* ═══════════════════════════════════════════════════════════════════════ */
-/*    ✅ ACTIVITÉ RÉCENTE — refondue avec écriture plus grande              */
-/* ═══════════════════════════════════════════════════════════════════════ */
-
 function RecentActivityCard({
                                 activities, onClick,
                             }: {
@@ -495,17 +567,20 @@ function RecentActivityCard({
         <div
             className="p-4 sm:p-5 rounded-2xl"
             style={{
-                background: 'linear-gradient(180deg, rgba(15, 58, 26, 0.5), rgba(10, 31, 14, 0.5))',
-                border: '1px solid rgba(42, 128, 64, 0.3)',
+                background: 'var(--color-bg-card)',
+                border: '1px solid var(--color-border)',
             }}
         >
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h3 className="text-base font-semibold text-white flex items-center gap-2">
-                        <Activity size={16} style={{ color: '#4ade80' }} />
+                    <h3
+                        className="text-base font-semibold flex items-center gap-2"
+                        style={{ color: 'var(--color-text-primary)' }}
+                    >
+                        <Activity size={16} style={{ color: 'var(--color-success)' }} />
                         Activité récente
                     </h3>
-                    <p className="text-[12px] mt-0.5" style={{ color: '#a8c4aa' }}>
+                    <p className="text-[12px] mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
                         10 dernières actions
                     </p>
                 </div>
@@ -513,64 +588,91 @@ function RecentActivityCard({
 
             {activities.length === 0 ? (
                 <div className="py-8 text-center">
-                    <Activity size={24} className="mx-auto mb-2 opacity-30" style={{ color: '#a8c4aa' }} />
-                    <p className="text-xs" style={{ color: '#5a8060' }}>Aucune activité</p>
+                    <Activity
+                        size={24}
+                        className="mx-auto mb-2 opacity-30"
+                        style={{ color: 'var(--color-text-secondary)' }}
+                    />
+                    <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+                        Aucune activité
+                    </p>
                 </div>
             ) : (
                 <div className="space-y-2.5">
                     {activities.map((a) => {
-                        const cfg  = STATUS_ICONS[a.status] ?? STATUS_ICONS.PROPOSED
+                        const cfg  = STATUS_CONFIG[a.status] ?? STATUS_CONFIG.PROPOSED
                         const Icon = cfg.icon
                         const name = a.client_name ?? a.username ?? `Client #${a.client_id}`
                         const isBuy = a.operation === 'BUY'
+
+                        const colorVar  = `var(--color-${cfg.semantic})`
+                        const bgVar     = `var(--color-${cfg.semantic}-bg)`
+                        const borderVar = `var(--color-${cfg.semantic}-border)`
 
                         return (
                             <div
                                 key={a.order_id}
                                 onClick={() => onClick(a.thread_id)}
-                                className="px-3.5 py-3 rounded-xl flex items-center gap-3.5 cursor-pointer transition-all hover:bg-white/5 active:scale-[0.99]"
+                                className="px-3.5 py-3 rounded-xl flex items-center gap-3.5 cursor-pointer transition-all active:scale-[0.99]"
                                 style={{
-                                    background: 'rgba(0, 0, 0, 0.25)',
-                                    border: '1px solid rgba(42, 128, 64, 0.15)',
+                                    background: 'var(--color-bg-tertiary)',
+                                    border: '1px solid var(--color-border-subtle)',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.background = 'var(--color-bg-card-hover)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.background = 'var(--color-bg-tertiary)'
                                 }}
                             >
-                                {/* Icône statut — agrandie */}
                                 <div
                                     className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                                     style={{
-                                        background: `${cfg.color}15`,
-                                        border: `1px solid ${cfg.color}30`,
+                                        background: bgVar,
+                                        border: `1px solid ${borderVar}`,
                                     }}
                                 >
-                                    <Icon size={16} style={{ color: cfg.color }} />
+                                    <Icon size={16} style={{ color: colorVar }} />
                                 </div>
 
-                                {/* Contenu */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-mono-nums text-[14px] font-bold text-white">
+                                        <span
+                                            className="font-mono-nums text-[14px] font-bold"
+                                            style={{ color: 'var(--color-text-primary)' }}
+                                        >
                                             {a.ref_ticket}
                                         </span>
                                         <span
                                             className="text-[11px] font-semibold px-2 py-0.5 rounded"
                                             style={{
-                                                background: `${cfg.color}15`,
-                                                color: cfg.color,
-                                                border: `1px solid ${cfg.color}30`,
+                                                background: bgVar,
+                                                color: colorVar,
+                                                border: `1px solid ${borderVar}`,
                                             }}
                                         >
                                             {cfg.label}
                                         </span>
                                         <span
                                             className="text-[12px] font-bold flex items-center gap-1"
-                                            style={{ color: isBuy ? '#4ade80' : '#fb7185' }}
+                                            style={{
+                                                color: isBuy ? 'var(--color-success)' : 'var(--color-danger)',
+                                            }}
                                         >
                                             {isBuy ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
                                             {a.operation === 'BUY' ? 'Achat' : 'Vente'} {a.currency}
                                         </span>
                                     </div>
-                                    <div className="text-[12px] mt-1 truncate" style={{ color: '#a8c4aa' }}>
-                                        <span className="font-semibold text-white">{name}</span>
+                                    <div
+                                        className="text-[12px] mt-1 truncate"
+                                        style={{ color: 'var(--color-text-secondary)' }}
+                                    >
+                                        <span
+                                            className="font-semibold"
+                                            style={{ color: 'var(--color-text-primary)' }}
+                                        >
+                                            {name}
+                                        </span>
                                         <span className="mx-1.5 opacity-40">·</span>
                                         <span className="font-mono-nums">
                                             {a.amount.toLocaleString('fr-FR', { minimumFractionDigits: 0 })} {a.currency}
@@ -578,12 +680,14 @@ function RecentActivityCard({
                                     </div>
                                 </div>
 
-                                {/* Time + arrow */}
                                 <div className="flex items-center gap-2.5 flex-shrink-0">
-                                    <span className="text-[11px] font-mono-nums hidden sm:inline" style={{ color: '#5a8060' }}>
+                                    <span
+                                        className="text-[11px] font-mono-nums hidden sm:inline"
+                                        style={{ color: 'var(--color-text-tertiary)' }}
+                                    >
                                         {timeAgo(a.updated_at)}
                                     </span>
-                                    <ArrowRight size={14} style={{ color: '#5a8060' }} />
+                                    <ArrowRight size={14} style={{ color: 'var(--color-text-tertiary)' }} />
                                 </div>
                             </div>
                         )
@@ -600,16 +704,22 @@ function EmptyState() {
             <div
                 className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
                 style={{
-                    background: 'rgba(42, 128, 64, 0.15)',
-                    border: '1px solid rgba(74, 222, 128, 0.25)',
+                    background: 'var(--color-success-bg)',
+                    border: '1px solid var(--color-success-border)',
                 }}
             >
-                <BarChart3 size={28} style={{ color: '#4ade80' }} />
+                <BarChart3 size={28} style={{ color: 'var(--color-success)' }} />
             </div>
-            <p className="text-sm font-medium" style={{ color: '#a8c4aa' }}>
+            <p
+                className="text-sm font-medium"
+                style={{ color: 'var(--color-text-secondary)' }}
+            >
                 Aucune donnée disponible
             </p>
-            <p className="text-xs mt-1" style={{ color: '#5a8060' }}>
+            <p
+                className="text-xs mt-1"
+                style={{ color: 'var(--color-text-tertiary)' }}
+            >
                 Sélectionnez une autre période ou créez votre premier ticket
             </p>
         </div>

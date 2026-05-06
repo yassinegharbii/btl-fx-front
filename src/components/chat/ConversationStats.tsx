@@ -14,63 +14,19 @@ interface Props {
 }
 
 interface StatConfig {
-    key:    OrderStatus | 'TOTAL'
-    label:  string
-    icon:   LucideIcon
-    color:  string
-    bg:     string
-    border: string
+    key:      OrderStatus | 'TOTAL'
+    label:    string
+    icon:     LucideIcon
+    semantic: 'success' | 'warning' | 'danger' | 'info' | 'neutral'
 }
 
 const STAT_CONFIGS: StatConfig[] = [
-    {
-        key: 'PROPOSED',
-        label: 'En cours',
-        icon: Clock,
-        color:  '#fbbf24',
-        bg:     'rgba(251, 191, 36, 0.1)',
-        border: 'rgba(251, 191, 36, 0.3)',
-    },
-    {
-        key: 'ACCEPTED_BY_CLIENT',
-        label: 'Acceptés',
-        icon: CheckCircle2,
-        color:  '#4ade80',
-        bg:     'rgba(74, 222, 128, 0.1)',
-        border: 'rgba(74, 222, 128, 0.3)',
-    },
-    {
-        key: 'DECLINED_BY_CLIENT',
-        label: 'Refusés',
-        icon: XCircle,
-        color:  '#fb7185',
-        bg:     'rgba(251, 113, 133, 0.1)',
-        border: 'rgba(251, 113, 133, 0.3)',
-    },
-    {
-        key: 'CONFIRMED_BY_BRANCH',
-        label: 'Pris en charge',
-        icon: ClipboardCheck,
-        color:  '#60a5fa',
-        bg:     'rgba(96, 165, 250, 0.1)',
-        border: 'rgba(96, 165, 250, 0.3)',
-    },
-    {
-        key: 'COMPLETED',
-        label: 'Finalisés',
-        icon: Award,
-        color:  '#34d399',
-        bg:     'rgba(52, 211, 153, 0.12)',
-        border: 'rgba(52, 211, 153, 0.35)',
-    },
-    {
-        key: 'EXPIRED',
-        label: 'Expirés',
-        icon: Hourglass,
-        color:  '#94a3b8',
-        bg:     'rgba(148, 163, 184, 0.1)',
-        border: 'rgba(148, 163, 184, 0.25)',
-    },
+    { key: 'PROPOSED',            label: 'En cours',       icon: Clock,          semantic: 'warning' },
+    { key: 'ACCEPTED_BY_CLIENT',  label: 'Acceptés',       icon: CheckCircle2,   semantic: 'success' },
+    { key: 'DECLINED_BY_CLIENT',  label: 'Refusés',        icon: XCircle,        semantic: 'danger'  },
+    { key: 'CONFIRMED_BY_BRANCH', label: 'Pris en charge', icon: ClipboardCheck, semantic: 'info'    },
+    { key: 'COMPLETED',           label: 'Finalisés',      icon: Award,          semantic: 'success' },
+    { key: 'EXPIRED',             label: 'Expirés',        icon: Hourglass,      semantic: 'neutral' },
 ]
 
 export function ConversationStats({ threadId }: Props) {
@@ -97,8 +53,8 @@ export function ConversationStats({ threadId }: Props) {
         <div
             className="flex-shrink-0 border-b"
             style={{
-                background: 'linear-gradient(180deg, rgba(15, 58, 26, 0.5), rgba(10, 31, 14, 0.4))',
-                borderColor: 'rgba(42, 128, 64, 0.25)',
+                background: 'var(--color-bg-tertiary)',
+                borderColor: 'var(--color-divider)',
                 animation: 'statsAppear 0.3s ease-out',
             }}
         >
@@ -119,7 +75,7 @@ export function ConversationStats({ threadId }: Props) {
     )
 }
 
-/* ─── Vue MOBILE — INCHANGÉE ──────────────────────────────────────── */
+/* ─── Vue MOBILE ─────────────────────────────────────────────────── */
 function MobileStatsView({
                              counts,
                          }: {
@@ -137,18 +93,18 @@ function MobileStatsView({
                 <div
                     className="flex items-center gap-2 px-3 py-2 rounded-lg flex-shrink-0"
                     style={{
-                        background: 'rgba(74, 222, 128, 0.08)',
-                        border: '1px solid rgba(74, 222, 128, 0.25)',
+                        background: 'var(--color-success-bg)',
+                        border: '1px solid var(--color-success-border)',
                         minWidth: 80,
                     }}
                 >
-                    <BarChart3 size={13} style={{ color: '#4ade80', flexShrink: 0 }} />
+                    <BarChart3 size={13} style={{ color: 'var(--color-success)', flexShrink: 0 }} />
                     <div className="flex flex-col leading-tight">
-                        <span className="font-mono-nums text-sm font-bold text-white">
+                        <span className="font-mono-nums text-sm font-bold" style={{ color: 'var(--color-text-primary)' }}>
                             {counts.total}
                         </span>
                         <span className="text-[8px] uppercase tracking-wider"
-                              style={{ color: '#a8c4aa' }}>
+                              style={{ color: 'var(--color-text-secondary)' }}>
                             Total
                         </span>
                     </div>
@@ -178,32 +134,43 @@ function MobileStatChip({
     const pct  = total > 0 ? (count / total) * 100 : 0
     const isActive = count > 0
 
+    const colorVar  = `var(--color-${config.semantic})`
+    const bgVar     = `var(--color-${config.semantic}-bg)`
+    const borderVar = `var(--color-${config.semantic}-border)`
+
     return (
         <div
             className="px-2 py-1.5 rounded-lg flex items-center gap-2 min-w-0 transition-all flex-shrink-0"
             style={{
-                background: isActive ? config.bg : 'rgba(0, 0, 0, 0.2)',
-                border: `1px solid ${isActive ? config.border : 'rgba(255,255,255,0.05)'}`,
+                background: isActive ? bgVar : 'var(--color-bg-input)',
+                border: `1px solid ${isActive ? borderVar : 'var(--color-border-subtle)'}`,
                 opacity: isActive ? 1 : 0.5,
                 minWidth: 90,
             }}
             title={`${config.label} : ${count} (${pct.toFixed(1)}%)`}
         >
-            <Icon size={11} style={{ color: isActive ? config.color : '#5a8060', flexShrink: 0 }} />
+            <Icon
+                size={11}
+                style={{ color: isActive ? colorVar : 'var(--color-text-tertiary)', flexShrink: 0 }}
+            />
             <div className="flex flex-col min-w-0 leading-tight">
                 <div className="flex items-baseline gap-1">
-                    <span className="font-mono-nums text-[13px] font-bold"
-                          style={{ color: isActive ? config.color : '#5a8060' }}>
+                    <span
+                        className="font-mono-nums text-[13px] font-bold"
+                        style={{ color: isActive ? colorVar : 'var(--color-text-tertiary)' }}
+                    >
                         {count}
                     </span>
                     {isActive && (
-                        <span className="text-[8px] font-mono-nums" style={{ color: '#5a8060' }}>
+                        <span className="text-[8px] font-mono-nums" style={{ color: 'var(--color-text-tertiary)' }}>
                             {pct.toFixed(0)}%
                         </span>
                     )}
                 </div>
-                <span className="text-[8px] uppercase tracking-wider truncate"
-                      style={{ color: '#a8c4aa' }}>
+                <span
+                    className="text-[8px] uppercase tracking-wider truncate"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                >
                     {config.label}
                 </span>
             </div>
@@ -211,7 +178,7 @@ function MobileStatChip({
     )
 }
 
-/* ─── Vue DESKTOP — REFONDUE plus aérée ───────────────────────────── */
+/* ─── Vue DESKTOP ─────────────────────────────────────────────────── */
 function DesktopStatsView({
                               counts,
                           }: {
@@ -225,33 +192,40 @@ function DesktopStatsView({
                 <div
                     className="flex items-center gap-3 px-4 py-2.5 rounded-xl flex-shrink-0"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.15), rgba(42, 128, 64, 0.1))',
-                        border: '1px solid rgba(74, 222, 128, 0.3)',
+                        background: 'var(--color-success-bg)',
+                        border: '1px solid var(--color-success-border)',
                     }}
                 >
                     <div
                         className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                         style={{
-                            background: 'rgba(74, 222, 128, 0.2)',
-                            border: '1px solid rgba(74, 222, 128, 0.4)',
+                            background: 'var(--color-success-bg)',
+                            border: '1px solid var(--color-success-border)',
                         }}
                     >
-                        <BarChart3 size={16} style={{ color: '#4ade80' }} />
+                        <BarChart3 size={16} style={{ color: 'var(--color-success)' }} />
                     </div>
                     <div className="flex flex-col leading-tight">
-                        <span className="font-mono-nums text-2xl font-bold text-white">
+                        <span
+                            className="font-mono-nums text-2xl font-bold"
+                            style={{ color: 'var(--color-text-primary)' }}
+                        >
                             {counts.total}
                         </span>
-                        <span className="text-[10px] uppercase tracking-widest font-semibold"
-                              style={{ color: '#a8c4aa' }}>
+                        <span
+                            className="text-[10px] uppercase tracking-widest font-semibold"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                        >
                             Tickets
                         </span>
                     </div>
                 </div>
 
                 {/* Séparateur vertical */}
-                <div className="w-px flex-shrink-0"
-                     style={{ background: 'rgba(42, 128, 64, 0.25)' }} />
+                <div
+                    className="w-px flex-shrink-0"
+                    style={{ background: 'var(--color-divider)' }}
+                />
 
                 {/* 6 stats — chips plus larges */}
                 <div className="flex-1 grid grid-cols-6 gap-2 min-w-0">
@@ -280,12 +254,16 @@ function DesktopStatCard({
     const pct  = total > 0 ? (count / total) * 100 : 0
     const isActive = count > 0
 
+    const colorVar  = `var(--color-${config.semantic})`
+    const bgVar     = `var(--color-${config.semantic}-bg)`
+    const borderVar = `var(--color-${config.semantic}-border)`
+
     return (
         <div
             className="px-3 py-2.5 rounded-xl flex items-center gap-2.5 min-w-0 transition-all"
             style={{
-                background: isActive ? config.bg : 'rgba(0, 0, 0, 0.2)',
-                border: `1px solid ${isActive ? config.border : 'rgba(255,255,255,0.05)'}`,
+                background: isActive ? bgVar : 'var(--color-bg-input)',
+                border: `1px solid ${isActive ? borderVar : 'var(--color-border-subtle)'}`,
                 opacity: isActive ? 1 : 0.45,
             }}
             title={`${config.label} : ${count} (${pct.toFixed(1)}%)`}
@@ -293,28 +271,34 @@ function DesktopStatCard({
             <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                 style={{
-                    background: isActive ? config.bg : 'rgba(0, 0, 0, 0.3)',
-                    border: `1px solid ${isActive ? config.border : 'rgba(255,255,255,0.05)'}`,
+                    background: isActive ? bgVar : 'var(--color-bg-tertiary)',
+                    border: `1px solid ${isActive ? borderVar : 'var(--color-border-subtle)'}`,
                 }}
             >
-                <Icon size={14} style={{ color: isActive ? config.color : '#5a8060' }} />
+                <Icon size={14} style={{ color: isActive ? colorVar : 'var(--color-text-tertiary)' }} />
             </div>
 
             <div className="flex flex-col min-w-0 leading-tight flex-1">
                 <div className="flex items-baseline gap-1.5">
-                    <span className="font-mono-nums text-[18px] font-bold"
-                          style={{ color: isActive ? config.color : '#5a8060' }}>
+                    <span
+                        className="font-mono-nums text-[18px] font-bold"
+                        style={{ color: isActive ? colorVar : 'var(--color-text-tertiary)' }}
+                    >
                         {count}
                     </span>
                     {isActive && total > 0 && (
-                        <span className="text-[10px] font-mono-nums font-semibold"
-                              style={{ color: '#5a8060' }}>
+                        <span
+                            className="text-[10px] font-mono-nums font-semibold"
+                            style={{ color: 'var(--color-text-tertiary)' }}
+                        >
                             {pct.toFixed(0)}%
                         </span>
                     )}
                 </div>
-                <span className="text-[10px] uppercase tracking-wider font-semibold truncate"
-                      style={{ color: '#a8c4aa' }}>
+                <span
+                    className="text-[10px] uppercase tracking-wider font-semibold truncate"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                >
                     {config.label}
                 </span>
             </div>

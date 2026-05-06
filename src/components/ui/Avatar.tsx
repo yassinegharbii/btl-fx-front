@@ -13,12 +13,27 @@ const sizes = {
   lg: 'w-12 h-12 text-base',
 }
 
-// Nuances de vert — aucun bleu
 const colors = {
-  green:  { bg: 'rgba(74, 222, 128, 0.15)',  text: '#4ade80', border: 'rgba(74, 222, 128, 0.25)' },
-  lime:   { bg: 'rgba(163, 230, 53, 0.15)',  text: '#a3e635', border: 'rgba(163, 230, 53, 0.25)' },
-  mint:   { bg: 'rgba(52, 211, 153, 0.15)',  text: '#34d399', border: 'rgba(52, 211, 153, 0.25)' },
-  forest: { bg: 'rgba(26, 92, 42, 0.35)',    text: '#a8c4aa', border: 'rgba(42, 128, 64, 0.4)' },
+  green:  {
+    bg:     'var(--color-success-bg)',
+    text:   'var(--color-success)',
+    border: 'var(--color-success-border)',
+  },
+  lime:   {
+    bg:     'var(--color-success-bg)',
+    text:   'var(--color-success)',
+    border: 'var(--color-success-border)',
+  },
+  mint:   {
+    bg:     'var(--color-success-bg)',
+    text:   'var(--color-success)',
+    border: 'var(--color-success-border)',
+  },
+  forest: {
+    bg:     'var(--color-bg-tertiary)',
+    text:   'var(--color-text-secondary)',
+    border: 'var(--color-border)',
+  },
 }
 
 function initials(name: string) {
@@ -33,7 +48,11 @@ export function Avatar({ name, size = 'md', color = 'green', className }: Props)
               'rounded-full flex items-center justify-center font-semibold flex-shrink-0',
               sizes[size], className
           )}
-          style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}
+          style={{
+            background: c.bg,
+            color: c.text,
+            border: `1px solid ${c.border}`,
+          }}
       >
         {initials(name)}
       </div>

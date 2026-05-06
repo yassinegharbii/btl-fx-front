@@ -20,6 +20,7 @@ import { TicketForm }          from '@/components/ticket/TicketForm'
 import { Avatar }              from '@/components/ui/Avatar'
 import { Button }              from '@/components/ui/Button'
 import { MobileDrawer }        from '@/components/ui/MobileDrawer'
+import { ThemeToggle }         from '@/components/ui/ThemeToggle'
 import { LogOut, PlusCircle, Menu, Plus, Home } from 'lucide-react'
 import { useAuthStore }        from '@/stores/auth.store'
 
@@ -85,7 +86,8 @@ export default function TraderChatPage() {
   }, [isClientTyping, isOnline])
 
   return (
-      <div className="flex h-screen overflow-hidden" style={{ background: '#070d09' }}>
+      <div className="flex h-screen overflow-hidden"
+           style={{ background: 'var(--color-bg-primary)' }}>
 
         {/* ─── SIDEBAR ─── */}
         {!isMobile && (
@@ -111,8 +113,8 @@ export default function TraderChatPage() {
           {/* HEADER */}
           <div className="flex items-center justify-between px-3 sm:px-5 py-3 sm:py-3.5 border-b flex-shrink-0 gap-2"
                style={{
-                 background: 'rgba(15, 58, 26, 0.8)',
-                 borderColor: 'rgba(42, 128, 64, 0.3)',
+                 background: 'var(--color-bg-secondary)',
+                 borderColor: 'var(--color-border)',
                }}>
 
             {/* Hamburger sur mobile */}
@@ -121,9 +123,9 @@ export default function TraderChatPage() {
                     onClick={() => setShowSidebar(true)}
                     className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-95"
                     style={{
-                      background: 'rgba(74, 222, 128, 0.12)',
-                      border: '1px solid rgba(74, 222, 128, 0.3)',
-                      color: '#4ade80',
+                      background: 'var(--color-success-bg)',
+                      border: '1px solid var(--color-success-border)',
+                      color: 'var(--color-success)',
                     }}
                     aria-label="Ouvrir le menu"
                 >
@@ -131,27 +133,15 @@ export default function TraderChatPage() {
                 </button>
             )}
 
-            {/* ✅ NOUVEAU — Bouton Accueil */}
+            {/* Bouton Accueil */}
             <button
                 onClick={() => navigate('/trader')}
                 title="Retour au tableau de bord"
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all active:scale-95"
                 style={{
-                  background: 'rgba(74, 222, 128, 0.08)',
-                  border: '1px solid rgba(74, 222, 128, 0.25)',
-                  color: '#4ade80',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isMobile) {
-                    e.currentTarget.style.background = 'rgba(74, 222, 128, 0.18)'
-                    e.currentTarget.style.borderColor = 'rgba(74, 222, 128, 0.4)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isMobile) {
-                    e.currentTarget.style.background = 'rgba(74, 222, 128, 0.08)'
-                    e.currentTarget.style.borderColor = 'rgba(74, 222, 128, 0.25)'
-                  }
+                  background: 'var(--color-success-bg)',
+                  border: '1px solid var(--color-success-border)',
+                  color: 'var(--color-success)',
                 }}
                 aria-label="Tableau de bord"
             >
@@ -166,15 +156,17 @@ export default function TraderChatPage() {
                         userId={clientId}
                         fallbackOnline={thread?.client_online ?? false}
                         className="absolute -bottom-0.5 -right-0.5 w-3 h-3"
-                        style={{ border: '2px solid #0f3a1a' }}
+                        style={{ border: '2px solid var(--color-bg-secondary)' }}
                     />
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[13px] sm:text-sm font-semibold text-white truncate">
+                <div className="text-[13px] sm:text-sm font-semibold truncate"
+                     style={{ color: 'var(--color-text-primary)' }}>
                   {displayName}
                 </div>
-                <div className="text-[10px] sm:text-[11px] truncate" style={{ color: '#a8c4aa' }}>
+                <div className="text-[10px] sm:text-[11px] truncate"
+                     style={{ color: 'var(--color-text-secondary)' }}>
                   {statusLabel}
                 </div>
               </div>
@@ -191,32 +183,20 @@ export default function TraderChatPage() {
                       <PlusCircle size={14} />
                       Nouveau ticket
                     </Button>
-                    <div className="w-px h-6" style={{ background: 'rgba(42, 128, 64, 0.3)' }} />
+                    <div className="w-px h-6" style={{ background: 'var(--color-border)' }} />
                   </>
               )}
+
+              <ThemeToggle />
 
               <button
                   onClick={logout}
                   title="Déconnexion"
                   className="w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95"
                   style={{
-                    background: 'rgba(15, 58, 26, 0.4)',
-                    border: '1px solid rgba(42, 128, 64, 0.3)',
-                    color: '#a8c4aa',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isMobile) {
-                      e.currentTarget.style.background = 'rgba(200, 16, 46, 0.15)'
-                      e.currentTarget.style.borderColor = 'rgba(200, 16, 46, 0.4)'
-                      e.currentTarget.style.color = '#fb7185'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isMobile) {
-                      e.currentTarget.style.background = 'rgba(15, 58, 26, 0.4)'
-                      e.currentTarget.style.borderColor = 'rgba(42, 128, 64, 0.3)'
-                      e.currentTarget.style.color = '#a8c4aa'
-                    }
+                    background: 'var(--color-bg-tertiary)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-text-secondary)',
                   }}
               >
                 <LogOut size={14} />
@@ -232,8 +212,10 @@ export default function TraderChatPage() {
             {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full text-center px-4">
                   <div className="text-3xl mb-3">💬</div>
-                  <p className="text-sm text-white/30">Début de la conversation</p>
-                  <p className="text-xs text-white/15 mt-1">
+                  <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
+                    Début de la conversation
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
                     Envoyez un message ou proposez un ticket de change
                   </p>
                 </div>
@@ -261,10 +243,10 @@ export default function TraderChatPage() {
                     right: 16,
                     width: 56,
                     height: 56,
-                    background: 'linear-gradient(135deg, #4ade80, #2a8040)',
-                    border: '2px solid rgba(74, 222, 128, 0.5)',
+                    background: 'linear-gradient(135deg, var(--color-success), var(--color-accent-secondary))',
+                    border: '2px solid var(--color-success-border)',
                     color: '#fff',
-                    boxShadow: '0 8px 24px rgba(26, 92, 42, 0.6), 0 0 0 4px rgba(74, 222, 128, 0.15)',
+                    boxShadow: '0 8px 24px var(--color-success-bg), 0 0 0 4px var(--color-success-bg)',
                   }}
                   aria-label="Nouveau ticket"
                   title="Créer un ticket"

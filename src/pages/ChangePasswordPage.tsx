@@ -1,338 +1,326 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
-import {
-    Lock, Eye, EyeOff, Shield, AlertCircle, CheckCircle2,
-    ArrowRight, LogOut,
-} from 'lucide-react'
+import { useLogin } from '@/hooks/useAuth'
+import { Lock, User, Eye, EyeOff, ArrowRight, Building2 } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
-import { api } from '@/lib/axios'
-import { useAuthStore } from '@/stores/auth.store'
-import { authApi } from '@/api/auth.api'
-
-export default function ChangePasswordPage() {
+export default function LoginPage() {
     const navigate = useNavigate()
-    const user     = useAuthStore((s) => s.user)
-    const setAuth  = useAuthStore((s) => s.setAuth)
-    const logout   = useAuthStore((s) => s.logout)
-    const token    = useAuthStore((s) => s.token)
+    const login = useLogin()
 
-    const [password,        setPassword]        = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
-    const [showPwd,  setShowPwd]  = useState(false)
-    const [showCfm,  setShowCfm]  = useState(false)
-    const [touched,  setTouched]  = useState({ pwd: false, cfm: false })
-
-    const validation = useMemo(() => {
-        const pwdErrors: string[] = []
-        if (password.length < 8)            pwdErrors.push('Au moins 8 caractères')
-        if (!/[A-Z]/.test(password))        pwdErrors.push('Au moins une majuscule')
-        if (!/[a-z]/.test(password))        pwdErrors.push('Au moins une minuscule')
-        if (!/[0-9]/.test(password))        pwdErrors.push('Au moins un chiffre')
-
-        const matchError = confirmPassword && password !== confirmPassword
-            ? 'Les mots de passe ne correspondent pas'
-            : ''
-
-        return {
-            pwdErrors,
-            matchError,
-            isValid: pwdErrors.length === 0 && password === confirmPassword && password.length > 0,
-        }
-    }, [password, confirmPassword])
-
-    const criteria = [
-        { label: 'Au moins 8 caractères',    valid: password.length >= 8 },
-        { label: 'Au moins une majuscule',   valid: /[A-Z]/.test(password) },
-        { label: 'Au moins une minuscule',   valid: /[a-z]/.test(password) },
-        { label: 'Au moins un chiffre',      valid: /[0-9]/.test(password) },
-        { label: 'Les deux mots de passe sont identiques', valid: password.length > 0 && password === confirmPassword },
-    ]
-
-    const change = useMutation({
-        mutationFn: async () => {
-            await api.post('/auth/change-password', { password })
-        },
-        onSuccess: async () => {
-            toast.success('Mot de passe modifié avec succès')
-
-            try {
-                const updatedUser = await authApi.me()
-                if (token) setAuth(token, updatedUser)
-            } catch {}
-
-            const routes: Record<string, string> = {
-                CLIENT: '/chat',
-                TRADER: '/trader',
-                AGENCE: '/agence',
-                ADMIN:  '/admin',
-            }
-            navigate(routes[user?.role ?? ''] ?? '/login', { replace: true })
-        },
-        onError: (err: any) => {
-            const detail = err.response?.data?.detail
-            const msg = typeof detail === 'string' ? detail : 'Erreur lors du changement de mot de passe'
-            toast.error(msg)
-        },
-    })
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
+    const [error, setError] = useState('')
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        setTouched({ pwd: true, cfm: true })
-        if (validation.isValid) change.mutate()
+        setError('')
+
+        if (!username || !password) {
+            setError('Veuillez remplir tous les champs')
+            return
+        }
+
+        login.mutate(
+            { username, password },
+            {
+                onError: (err: any) => {
+                    const detail = err.response?.data?.detail
+                    setError(typeof detail === 'string' ? detail : 'Identifiants invalides')
+                },
+            }
+        )
     }
 
     return (
         <div
             className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden"
-            style={{ background: '#070d09' }}
+            style={{ background: 'var(--color-bg-primary)' }}
         >
+            {/* ─── ThemeToggle dans le coin haut-droit ─── */}
+            <div
+                className="absolute z-20"
+                style={{
+                    top: 'calc(1rem + env(safe-area-inset-top, 0))',
+                    right: '1rem',
+                }}
+            >
+                <ThemeToggle />
+            </div>
+
+            {/* Background animé radial */}
             <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                     background: `
-                        radial-gradient(circle at 20% 20%, rgba(74, 222, 128, 0.12) 0%, transparent 40%),
-                        radial-gradient(circle at 80% 80%, rgba(26, 92, 42, 0.18) 0%, transparent 40%)
+                        radial-gradient(circle at 20% 20%, var(--color-success-bg) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 80%, var(--color-success-bg) 0%, transparent 40%),
+                        radial-gradient(circle at 50% 50%, var(--color-bg-tertiary) 0%, transparent 70%)
                     `,
                 }}
             />
 
+            {/* Grid décorative — desktop uniquement */}
+            <div
+                className="absolute inset-0 pointer-events-none hidden md:block"
+                style={{
+                    backgroundImage: `
+                        linear-gradient(var(--color-border-subtle) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--color-border-subtle) 1px, transparent 1px)`,
+                    backgroundSize: '40px 40px',
+                }}
+            />
+
+            {/* Particules — desktop uniquement */}
+            <div className="hidden md:block">
+                {[...Array(4)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute rounded-full pointer-events-none"
+                        style={{
+                            width:  `${100 + i * 50}px`,
+                            height: `${100 + i * 50}px`,
+                            background: 'var(--color-success-bg)',
+                            opacity: 0.4 - i * 0.05,
+                            top:    `${10 + i * 25}%`,
+                            left:   `${10 + i * 25}%`,
+                            filter: 'blur(40px)',
+                            animation: `float ${15 + i * 5}s ease-in-out infinite`,
+                        }}
+                    />
+                ))}
+            </div>
+
+            {/* Container principal */}
             <div className="relative z-10 w-full max-w-md">
+
+                {/* Glow décoratif */}
                 <div
-                    className="absolute inset-0 rounded-3xl blur-2xl opacity-50"
+                    className="absolute inset-0 rounded-3xl blur-3xl opacity-50 pointer-events-none"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.3), rgba(26, 92, 42, 0.3))',
+                        background: 'linear-gradient(135deg, var(--color-success-bg), var(--color-accent-primary))',
                     }}
                 />
 
                 <div
                     className="relative rounded-3xl overflow-hidden"
                     style={{
-                        background: 'linear-gradient(180deg, rgba(15, 58, 26, 0.85), rgba(10, 31, 14, 0.95))',
-                        border: '1px solid rgba(74, 222, 128, 0.15)',
-                        boxShadow: '0 25px 80px rgba(0, 0, 0, 0.5)',
+                        background: 'var(--color-bg-elevated)',
+                        border: '1px solid var(--color-border)',
+                        boxShadow: 'var(--shadow-lg)',
                         backdropFilter: 'blur(20px)',
                     }}
                 >
-                    {/* HEADER */}
+
+                    {/* HEADER avec logo */}
                     <div
-                        className="px-6 sm:px-8 pt-6 sm:pt-8 pb-5 sm:pb-6 text-center relative"
+                        className="px-6 sm:px-8 pt-8 pb-6 text-center relative"
                         style={{
-                            background: 'linear-gradient(180deg, rgba(26, 92, 42, 0.4), transparent)',
+                            background: 'linear-gradient(180deg, var(--color-success-bg), transparent)',
                         }}
                     >
-                        <div className="flex justify-center mb-3 sm:mb-4">
-                            <div
-                                className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center"
-                                style={{
-                                    background: 'linear-gradient(135deg, #fbbf24, #b45309)',
-                                    boxShadow: '0 12px 32px rgba(251, 191, 36, 0.3)',
-                                }}
-                            >
-                                <Shield size={28} className="sm:hidden" style={{ color: '#fff' }} strokeWidth={2.5} />
-                                <Shield size={32} className="hidden sm:block" style={{ color: '#fff' }} strokeWidth={2.5} />
+                        <div className="flex justify-center mb-4">
+                            <div className="relative">
+                                <div
+                                    className="absolute inset-0 rounded-3xl blur-xl opacity-60"
+                                    style={{
+                                        background: 'linear-gradient(135deg, var(--color-success), var(--color-accent-secondary))',
+                                        animation: 'pulseRing 3s ease-in-out infinite',
+                                    }}
+                                />
+                                <div
+                                    className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-3xl flex items-center justify-center"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #ffffff, #f0f9f1)',
+                                        boxShadow: 'var(--shadow-glow)',
+                                    }}
+                                >
+                                    <img
+                                        src="/images/logo-btl.png"
+                                        alt="BTL"
+                                        className="w-20 h-20 sm:w-24 sm:h-24 object-contain"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none'
+                                            const parent = (e.target as HTMLImageElement).parentElement
+                                            if (parent) {
+                                                parent.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" stroke="#1a5c2a" stroke-width="2" fill="none"><path d="M3 10v11a1 1 0 001 1h16a1 1 0 001-1V10"/><path d="M3 10l9-7 9 7"/></svg>'
+                                            }
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        <h1 className="font-bold text-base sm:text-xl tracking-tight mb-1 sm:mb-2 text-white px-2">
-                            Changement de mot de passe requis
+                        <div className="flex items-center justify-center gap-1.5 mb-2">
+                            <Building2 size={14} style={{ color: 'var(--color-text-secondary)' }} />
+                            <span className="text-[10px] uppercase tracking-widest font-semibold"
+                                  style={{ color: 'var(--color-text-secondary)' }}>
+                                Banque Tuniso-Libyenne
+                            </span>
+                        </div>
+
+                        <h1 className="font-bold text-xl sm:text-2xl tracking-tight mb-1"
+                            style={{ color: 'var(--color-text-primary)' }}>
+                            BTL FX
                         </h1>
-                        <p className="text-[11px] sm:text-[12px]" style={{ color: '#a8c4aa' }}>
-                            Pour des raisons de sécurité, vous devez choisir un nouveau mot de passe.
+                        <p className="text-[11px] sm:text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                            Plateforme de négociation de devises
                         </p>
                     </div>
 
-                    {/* User info bar */}
-                    <div
-                        className="px-6 sm:px-8 py-3 flex items-center gap-3"
-                        style={{
-                            background: 'rgba(0, 0, 0, 0.25)',
-                            borderTop: '1px solid rgba(74, 222, 128, 0.1)',
-                            borderBottom: '1px solid rgba(74, 222, 128, 0.1)',
-                        }}
-                    >
-                        <div
-                            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{
-                                background: 'rgba(74, 222, 128, 0.15)',
-                                border: '1px solid rgba(74, 222, 128, 0.25)',
-                            }}
-                        >
-                            <span className="text-[11px] font-bold" style={{ color: '#4ade80' }}>
-                                {user?.username?.[0]?.toUpperCase() ?? '?'}
-                            </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold text-white truncate">
-                                {user?.full_name ?? user?.username}
-                            </div>
-                            <div className="text-[10px]" style={{ color: '#a8c4aa' }}>
-                                {user?.role}
-                            </div>
-                        </div>
-                        <button
-                            onClick={logout}
-                            title="Annuler et se déconnecter"
-                            className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{
-                                background: 'rgba(15, 58, 26, 0.4)',
-                                border: '1px solid rgba(42, 128, 64, 0.3)',
-                                color: '#a8c4aa',
-                            }}
-                        >
-                            <LogOut size={14} />
-                        </button>
-                    </div>
+                    {/* FORM */}
+                    <form onSubmit={handleSubmit} className="px-6 sm:px-8 py-6 space-y-4">
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="px-6 sm:px-8 py-5 sm:py-6 space-y-4">
-
+                        {/* Username */}
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
-                                   style={{ color: '#a8c4aa' }}>
-                                <Lock size={10} />
-                                Nouveau mot de passe
+                                   style={{ color: 'var(--color-text-secondary)' }}>
+                                <User size={10} />
+                                Identifiant
                             </label>
                             <div className="relative">
                                 <input
-                                    type={showPwd ? 'text' : 'password'}
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    placeholder="Votre identifiant"
+                                    autoComplete="username"
+                                    autoCapitalize="off"
+                                    autoCorrect="off"
+                                    className="w-full px-4 py-3 rounded-xl focus:outline-none transition-all"
+                                    style={{
+                                        background: 'var(--color-bg-input)',
+                                        border: '1px solid var(--color-border-subtle)',
+                                        color: 'var(--color-text-primary)',
+                                        fontSize: '16px',
+                                    }}
+                                    onFocus={(e) => (e.target.style.borderColor = 'var(--color-success-border)')}
+                                    onBlur={(e) => (e.target.style.borderColor = 'var(--color-border-subtle)')}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Password */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
+                                   style={{ color: 'var(--color-text-secondary)' }}>
+                                <Lock size={10} />
+                                Mot de passe
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    onBlur={() => setTouched({ ...touched, pwd: true })}
                                     placeholder="••••••••"
+                                    autoComplete="current-password"
                                     className="w-full px-4 py-3 pr-12 rounded-xl focus:outline-none transition-all"
                                     style={{
-                                        background: 'rgba(0, 0, 0, 0.4)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        color: '#fff',
+                                        background: 'var(--color-bg-input)',
+                                        border: '1px solid var(--color-border-subtle)',
+                                        color: 'var(--color-text-primary)',
                                         fontSize: '16px',
                                     }}
-                                    onFocus={(e) => (e.target.style.borderColor = 'rgba(74, 222, 128, 0.5)')}
-                                    autoFocus
+                                    onFocus={(e) => (e.target.style.borderColor = 'var(--color-success-border)')}
+                                    onBlur={(e) => (e.target.style.borderColor = 'var(--color-border-subtle)')}
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => setShowPwd(!showPwd)}
+                                    onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center"
-                                    style={{ color: '#5a8060' }}
+                                    style={{ color: 'var(--color-text-tertiary)' }}
                                     tabIndex={-1}
+                                    aria-label={showPassword ? 'Masquer' : 'Afficher'}
                                 >
-                                    {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
-                                   style={{ color: '#a8c4aa' }}>
-                                <Lock size={10} />
-                                Confirmer le mot de passe
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showCfm ? 'text' : 'password'}
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    onBlur={() => setTouched({ ...touched, cfm: true })}
-                                    placeholder="••••••••"
-                                    className="w-full px-4 py-3 pr-12 rounded-xl focus:outline-none transition-all"
-                                    style={{
-                                        background: 'rgba(0, 0, 0, 0.4)',
-                                        border: validation.matchError && touched.cfm
-                                            ? '1px solid rgba(251, 113, 133, 0.5)'
-                                            : '1px solid rgba(255,255,255,0.08)',
-                                        color: '#fff',
-                                        fontSize: '16px',
-                                    }}
-                                    onFocus={(e) => (e.target.style.borderColor = 'rgba(74, 222, 128, 0.5)')}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCfm(!showCfm)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center"
-                                    style={{ color: '#5a8060' }}
-                                    tabIndex={-1}
-                                >
-                                    {showCfm ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
+                        {error && (
+                            <div
+                                className="px-3 py-2 rounded-lg text-[12px] sm:text-xs"
+                                style={{
+                                    background: 'var(--color-danger-bg)',
+                                    border: '1px solid var(--color-danger-border)',
+                                    color: 'var(--color-danger)',
+                                }}
+                            >
+                                {error}
                             </div>
-                            {validation.matchError && touched.cfm && (
-                                <p className="text-[10px] flex items-center gap-1" style={{ color: '#fb7185' }}>
-                                    <AlertCircle size={10} />
-                                    {validation.matchError}
-                                </p>
-                            )}
-                        </div>
+                        )}
 
-                        {/* Critères */}
-                        <div
-                            className="px-3 py-3 rounded-xl space-y-1.5"
-                            style={{
-                                background: 'rgba(0, 0, 0, 0.25)',
-                                border: '1px solid rgba(74, 222, 128, 0.1)',
-                            }}
-                        >
-                            <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: '#a8c4aa' }}>
-                                Critères du mot de passe
-                            </div>
-                            {criteria.map((c, i) => (
-                                <div key={i} className="flex items-center gap-2 text-[11px]">
-                                    {c.valid ? (
-                                        <CheckCircle2 size={11} style={{ color: '#4ade80', flexShrink: 0 }} />
-                                    ) : (
-                                        <div
-                                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                                            style={{ border: '1px solid rgba(255,255,255,0.2)' }}
-                                        />
-                                    )}
-                                    <span style={{
-                                        color: c.valid ? '#4ade80' : '#a8c4aa',
-                                        transition: 'color 0.2s',
-                                    }}>
-                                        {c.label}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-
+                        {/* Bouton submit */}
                         <button
                             type="submit"
-                            disabled={!validation.isValid || change.isPending}
+                            disabled={login.isPending}
                             className="w-full py-3.5 rounded-xl font-semibold text-sm
                                        flex items-center justify-center gap-2 text-white
                                        transition-all active:scale-[0.98]
-                                       disabled:opacity-40 disabled:cursor-not-allowed
-                                       min-h-[48px] mt-2"
+                                       disabled:opacity-60 disabled:cursor-not-allowed
+                                       min-h-[48px]"
                             style={{
-                                background: 'linear-gradient(135deg, #2a8040 0%, #1a5c2a 100%)',
-                                border: '1px solid rgba(74, 222, 128, 0.4)',
-                                boxShadow: '0 8px 30px rgba(26, 92, 42, 0.4)',
+                                background: 'linear-gradient(135deg, var(--color-accent-secondary) 0%, var(--color-accent-primary) 100%)',
+                                border: '1px solid var(--color-success-border)',
+                                boxShadow: 'var(--shadow-glow)',
                             }}
                         >
-                            {change.isPending ? (
+                            {login.isPending ? (
                                 <>
                                     <span
                                         className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white"
                                         style={{ animation: 'spin 0.8s linear infinite' }}
                                     />
-                                    <span>Modification...</span>
+                                    <span>Connexion...</span>
                                 </>
                             ) : (
                                 <>
-                                    <span>Confirmer</span>
+                                    <span>Se connecter</span>
                                     <ArrowRight size={14} />
                                 </>
                             )}
                         </button>
+
+                        {/* Lien vers les taux publics */}
+                        <div className="text-center pt-2">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/rates')}
+                                className="text-[11px] underline transition-colors"
+                                style={{ color: 'var(--color-text-secondary)' }}
+                            >
+                                Consulter les taux de change
+                            </button>
+                        </div>
                     </form>
+
+                    {/* Footer */}
+                    <div
+                        className="px-6 sm:px-8 py-3 text-center text-[10px]"
+                        style={{
+                            background: 'var(--color-bg-tertiary)',
+                            color: 'var(--color-text-tertiary)',
+                            borderTop: '1px solid var(--color-border-subtle)',
+                        }}
+                    >
+                        © 2026 BTL — Système sécurisé
+                    </div>
                 </div>
             </div>
 
             <style>{`
+                @keyframes pulseRing {
+                    0%, 100% { transform: scale(1); opacity: 0.6; }
+                    50%      { transform: scale(1.05); opacity: 0.8; }
+                }
                 @keyframes spin {
-                    0%   { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
+                    from { transform: rotate(0deg); }
+                    to   { transform: rotate(360deg); }
+                }
+                @keyframes float {
+                    0%, 100% { transform: translate(0, 0); }
+                    50%      { transform: translate(20px, -30px); }
                 }
             `}</style>
         </div>

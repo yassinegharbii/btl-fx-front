@@ -84,7 +84,6 @@ export function TicketForm({ threadId, onClose }: Props) {
     const [comment,    setComment]    = useState('')
     const [bills,      setBills]      = useState<BillEntry[]>([])
 
-    // ✅ Empêche le scroll du body en arrière-plan (essentiel mobile fullscreen)
     useEffect(() => {
         const original = document.body.style.overflow
         document.body.style.overflow = 'hidden'
@@ -160,13 +159,12 @@ export function TicketForm({ threadId, onClose }: Props) {
         create.mutate(payload, { onSuccess: onClose })
     }
 
-    /* ─── Conteneur : fullscreen mobile, modal centré desktop ─────── */
     const containerStyle: React.CSSProperties = isMobile
         ? {
             position: 'fixed',
             inset: 0,
             zIndex: 50,
-            background: 'linear-gradient(180deg, #0f3a1a 0%, #0a1f0e 100%)',
+            background: 'var(--color-bg-elevated)',
             display: 'flex',
             flexDirection: 'column',
         }
@@ -174,7 +172,7 @@ export function TicketForm({ threadId, onClose }: Props) {
             position: 'fixed',
             inset: 0,
             zIndex: 50,
-            background: 'rgba(7, 13, 9, 0.75)',
+            background: 'var(--color-bg-overlay)',
             backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
@@ -191,9 +189,9 @@ export function TicketForm({ threadId, onClose }: Props) {
             background: 'transparent',
         }
         : {
-            background: 'linear-gradient(180deg, #0f3a1a 0%, #0a1f0e 100%)',
-            border: '1px solid rgba(42, 128, 64, 0.4)',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+            background: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border-strong)',
+            boxShadow: 'var(--shadow-lg)',
             borderRadius: '1rem',
             overflow: 'hidden',
             display: 'flex',
@@ -207,19 +205,22 @@ export function TicketForm({ threadId, onClose }: Props) {
         <div style={containerStyle}>
             <div style={cardStyle}>
 
-                {/* ─── HEADER (sticky en mobile) ─── */}
+                {/* HEADER */}
                 <div
                     className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b flex-shrink-0"
                     style={{
-                        background: isMobile ? 'rgba(15, 58, 26, 0.95)' : 'rgba(26, 92, 42, 0.3)',
-                        borderColor: 'rgba(42, 128, 64, 0.3)',
-                        // safe area iPhone notch
+                        background: 'var(--color-bg-tertiary)',
+                        borderColor: 'var(--color-border)',
                         paddingTop: isMobile ? 'calc(0.875rem + env(safe-area-inset-top, 0))' : undefined,
                     }}
                 >
                     <div className="min-w-0 flex-1">
-                        <h2 className="text-base sm:text-base font-bold text-white">Nouveau ticket</h2>
-                        <p className="text-[11px] mt-0.5 truncate" style={{ color: '#a8c4aa' }}>
+                        <h2 className="text-base font-bold"
+                            style={{ color: 'var(--color-text-primary)' }}>
+                            Nouveau ticket
+                        </h2>
+                        <p className="text-[11px] mt-0.5 truncate"
+                           style={{ color: 'var(--color-text-secondary)' }}>
                             Proposition de taux négocié
                         </p>
                     </div>
@@ -227,9 +228,9 @@ export function TicketForm({ threadId, onClose }: Props) {
                         onClick={onClose}
                         className="w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
                         style={{
-                            background: 'rgba(0, 0, 0, 0.3)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            color: 'rgba(255,255,255,0.6)',
+                            background: 'var(--color-bg-input)',
+                            border: '1px solid var(--color-border-subtle)',
+                            color: 'var(--color-text-secondary)',
                         }}
                         aria-label="Fermer"
                     >
@@ -237,16 +238,18 @@ export function TicketForm({ threadId, onClose }: Props) {
                     </button>
                 </div>
 
-                {/* ─── BODY (scrollable) ─── */}
+                {/* BODY */}
                 <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
 
-                    {/* OPÉRATION — Buy/Sell en cards radio */}
+                    {/* OPÉRATION */}
                     <Field label="Opération">
                         <div className="grid grid-cols-2 gap-2.5">
                             {(['BUY', 'SELL'] as Operation[]).map((op) => {
                                 const isActive = operation === op
                                 const isBuy = op === 'BUY'
                                 const Icon = isBuy ? ArrowUpRight : ArrowDownRight
+                                const semantic = isBuy ? 'success' : 'danger'
+
                                 return (
                                     <button
                                         key={op}
@@ -255,14 +258,14 @@ export function TicketForm({ threadId, onClose }: Props) {
                                         className="py-3.5 sm:py-3 rounded-xl text-sm font-semibold border transition-all active:scale-95 flex items-center justify-center gap-2"
                                         style={{
                                             background: isActive
-                                                ? isBuy ? 'rgba(74, 222, 128, 0.2)' : 'rgba(251, 113, 133, 0.2)'
-                                                : 'rgba(0,0,0,0.2)',
+                                                ? `var(--color-${semantic}-bg)`
+                                                : 'var(--color-bg-input)',
                                             borderColor: isActive
-                                                ? isBuy ? 'rgba(74, 222, 128, 0.5)' : 'rgba(251, 113, 133, 0.5)'
-                                                : 'rgba(255,255,255,0.08)',
+                                                ? `var(--color-${semantic}-border)`
+                                                : 'var(--color-border-subtle)',
                                             color: isActive
-                                                ? isBuy ? '#4ade80' : '#fb7185'
-                                                : 'rgba(255,255,255,0.4)',
+                                                ? `var(--color-${semantic})`
+                                                : 'var(--color-text-tertiary)',
                                             minHeight: 48,
                                         }}
                                     >
@@ -285,7 +288,7 @@ export function TicketForm({ threadId, onClose }: Props) {
                         </Select>
                     </Field>
 
-                    {/* MONTANT + TAUX — col-2 sur desktop, col-1 sur mobile */}
+                    {/* MONTANT + TAUX */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Field label={`Montant ${selectedCurrency?.code ?? ''}`}>
                             <NumberInput
@@ -313,15 +316,20 @@ export function TicketForm({ threadId, onClose }: Props) {
                         <div
                             className="px-3 py-3 rounded-xl text-center"
                             style={{
-                                background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.18), rgba(42, 128, 64, 0.1))',
-                                border: '1px solid rgba(74, 222, 128, 0.35)',
+                                background: 'var(--color-success-bg)',
+                                border: '1px solid var(--color-success-border)',
                             }}
                         >
-                            <div className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: '#a8c4aa' }}>
+                            <div className="text-[10px] uppercase tracking-widest font-semibold"
+                                 style={{ color: 'var(--color-text-secondary)' }}>
                                 Équivalent TND
                             </div>
-                            <div className="font-mono-nums text-2xl font-bold text-white mt-0.5">
-                                {tndEquivalent} <span className="text-sm" style={{ color: '#a8c4aa' }}>TND</span>
+                            <div className="font-mono-nums text-2xl font-bold mt-0.5"
+                                 style={{ color: 'var(--color-text-primary)' }}>
+                                {tndEquivalent}
+                                <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                                    {' '}TND
+                                </span>
                             </div>
                         </div>
                     )}
@@ -346,24 +354,27 @@ export function TicketForm({ threadId, onClose }: Props) {
                         </Field>
                     </div>
 
-                    {/* SECTION COUPURES — repensée mobile */}
+                    {/* COUPURES */}
                     {showBillsSection && (
                         <div
                             className="p-3 sm:p-3.5 rounded-xl space-y-2.5"
                             style={{
-                                background: 'rgba(0, 0, 0, 0.25)',
-                                border: '1px solid rgba(42, 128, 64, 0.3)',
+                                background: 'var(--color-bg-tertiary)',
+                                border: '1px solid var(--color-border)',
                             }}
                         >
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0 flex-1">
-                                    <div className="text-xs sm:text-[12px] font-semibold text-white">
+                                    <div className="text-xs font-semibold"
+                                         style={{ color: 'var(--color-text-primary)' }}>
                                         Coupures {selectedCurrency?.code ?? ''}
-                                        <span className="ml-1.5 text-[10px] font-normal" style={{ color: '#5a8060' }}>
+                                        <span className="ml-1.5 text-[10px] font-normal"
+                                              style={{ color: 'var(--color-text-tertiary)' }}>
                                             (optionnel)
                                         </span>
                                     </div>
-                                    <div className="text-[10px] mt-0.5" style={{ color: '#5a8060' }}>
+                                    <div className="text-[10px] mt-0.5"
+                                         style={{ color: 'var(--color-text-tertiary)' }}>
                                         Si ajoutées, total = montant
                                     </div>
                                 </div>
@@ -373,9 +384,9 @@ export function TicketForm({ threadId, onClose }: Props) {
                                     disabled={availableBills.length === 0}
                                     className="px-3 py-2 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-all disabled:opacity-30 active:scale-95 flex-shrink-0"
                                     style={{
-                                        background: 'rgba(74, 222, 128, 0.15)',
-                                        border: '1px solid rgba(74, 222, 128, 0.3)',
-                                        color: '#4ade80',
+                                        background: 'var(--color-success-bg)',
+                                        border: '1px solid var(--color-success-border)',
+                                        color: 'var(--color-success)',
                                         minHeight: 40,
                                     }}
                                 >
@@ -384,7 +395,8 @@ export function TicketForm({ threadId, onClose }: Props) {
                             </div>
 
                             {bills.length === 0 && (
-                                <div className="text-center py-3 text-[11px]" style={{ color: '#5a8060' }}>
+                                <div className="text-center py-3 text-[11px]"
+                                     style={{ color: 'var(--color-text-tertiary)' }}>
                                     Aucune coupure ajoutée
                                 </div>
                             )}
@@ -395,8 +407,8 @@ export function TicketForm({ threadId, onClose }: Props) {
                                         key={i}
                                         className="flex items-center gap-2 p-2 rounded-lg"
                                         style={{
-                                            background: 'rgba(255,255,255,0.02)',
-                                            border: '1px solid rgba(255,255,255,0.04)',
+                                            background: 'var(--color-bg-input)',
+                                            border: '1px solid var(--color-border-subtle)',
                                         }}
                                     >
                                         <Select
@@ -409,7 +421,10 @@ export function TicketForm({ threadId, onClose }: Props) {
                                             ))}
                                         </Select>
 
-                                        <span className="text-sm font-bold flex-shrink-0" style={{ color: '#5a8060' }}>×</span>
+                                        <span className="text-sm font-bold flex-shrink-0"
+                                              style={{ color: 'var(--color-text-tertiary)' }}>
+                                            ×
+                                        </span>
 
                                         <div className="flex items-center gap-1 flex-shrink-0">
                                             <button
@@ -417,9 +432,9 @@ export function TicketForm({ threadId, onClose }: Props) {
                                                 onClick={() => updateBill(i, 'quantity', Math.max(1, bill.quantity - 1))}
                                                 className="w-9 h-9 rounded-lg flex items-center justify-center transition-all active:scale-90"
                                                 style={{
-                                                    background: 'rgba(255,255,255,0.05)',
-                                                    border: '1px solid rgba(255,255,255,0.08)',
-                                                    color: 'rgba(255,255,255,0.6)',
+                                                    background: 'var(--color-bg-input)',
+                                                    border: '1px solid var(--color-border-subtle)',
+                                                    color: 'var(--color-text-secondary)',
                                                 }}
                                             >
                                                 <Minus size={14} />
@@ -432,9 +447,9 @@ export function TicketForm({ threadId, onClose }: Props) {
                                                 onChange={(e) => updateBill(i, 'quantity', Math.max(1, Number(e.target.value)))}
                                                 className="w-14 text-center px-1 py-1.5 rounded-lg font-mono-nums focus:outline-none"
                                                 style={{
-                                                    background: 'rgba(0,0,0,0.3)',
-                                                    border: '1px solid rgba(255,255,255,0.08)',
-                                                    color: '#fff',
+                                                    background: 'var(--color-bg-input)',
+                                                    border: '1px solid var(--color-border-subtle)',
+                                                    color: 'var(--color-text-primary)',
                                                     fontSize: '16px',
                                                 }}
                                             />
@@ -443,9 +458,9 @@ export function TicketForm({ threadId, onClose }: Props) {
                                                 onClick={() => updateBill(i, 'quantity', bill.quantity + 1)}
                                                 className="w-9 h-9 rounded-lg flex items-center justify-center transition-all active:scale-90"
                                                 style={{
-                                                    background: 'rgba(255,255,255,0.05)',
-                                                    border: '1px solid rgba(255,255,255,0.08)',
-                                                    color: 'rgba(255,255,255,0.6)',
+                                                    background: 'var(--color-bg-input)',
+                                                    border: '1px solid var(--color-border-subtle)',
+                                                    color: 'var(--color-text-secondary)',
                                                 }}
                                             >
                                                 <Plus size={14} />
@@ -457,9 +472,9 @@ export function TicketForm({ threadId, onClose }: Props) {
                                             onClick={() => removeBill(i)}
                                             className="w-9 h-9 rounded-lg flex items-center justify-center transition-all active:scale-90 flex-shrink-0"
                                             style={{
-                                                background: 'rgba(251, 113, 133, 0.1)',
-                                                border: '1px solid rgba(251, 113, 133, 0.2)',
-                                                color: '#fb7185',
+                                                background: 'var(--color-danger-bg)',
+                                                border: '1px solid var(--color-danger-border)',
+                                                color: 'var(--color-danger)',
                                             }}
                                             aria-label="Supprimer"
                                         >
@@ -472,14 +487,19 @@ export function TicketForm({ threadId, onClose }: Props) {
                             {bills.length > 0 && (
                                 <div
                                     className="flex items-center justify-between pt-2.5 border-t"
-                                    style={{ borderColor: 'rgba(42, 128, 64, 0.2)' }}
+                                    style={{ borderColor: 'var(--color-border-subtle)' }}
                                 >
-                                    <span className="text-[11px] font-semibold" style={{ color: '#a8c4aa' }}>
+                                    <span className="text-[11px] font-semibold"
+                                          style={{ color: 'var(--color-text-secondary)' }}>
                                         Total coupures
                                     </span>
                                     <span
                                         className="font-mono-nums text-sm font-bold"
-                                        style={{ color: Math.abs(totalBillsValue - amountNum) < 0.001 ? '#4ade80' : '#fb7185' }}
+                                        style={{
+                                            color: Math.abs(totalBillsValue - amountNum) < 0.001
+                                                ? 'var(--color-success)'
+                                                : 'var(--color-danger)',
+                                        }}
                                     >
                                         {totalBillsValue.toFixed(3)}
                                         {Math.abs(totalBillsValue - amountNum) >= 0.001 && ` ≠ ${amountNum.toFixed(3)}`}
@@ -500,9 +520,15 @@ export function TicketForm({ threadId, onClose }: Props) {
                                         onClick={() => setValidity(opt.value)}
                                         className="py-2.5 sm:py-2 rounded-lg text-xs font-medium border transition-all active:scale-95"
                                         style={{
-                                            background: active ? 'rgba(74, 222, 128, 0.2)' : 'rgba(0,0,0,0.2)',
-                                            borderColor: active ? 'rgba(74, 222, 128, 0.5)' : 'rgba(255,255,255,0.08)',
-                                            color: active ? '#4ade80' : 'rgba(255,255,255,0.5)',
+                                            background: active
+                                                ? 'var(--color-success-bg)'
+                                                : 'var(--color-bg-input)',
+                                            borderColor: active
+                                                ? 'var(--color-success-border)'
+                                                : 'var(--color-border-subtle)',
+                                            color: active
+                                                ? 'var(--color-success)'
+                                                : 'var(--color-text-tertiary)',
                                             minHeight: 40,
                                         }}
                                     >
@@ -512,7 +538,10 @@ export function TicketForm({ threadId, onClose }: Props) {
                             })}
                         </div>
                         <div className="mt-2 flex items-center gap-2">
-                            <span className="text-[10px] flex-shrink-0" style={{ color: '#5a8060' }}>ou minutes :</span>
+                            <span className="text-[10px] flex-shrink-0"
+                                  style={{ color: 'var(--color-text-tertiary)' }}>
+                                ou minutes :
+                            </span>
                             <div className="flex-1 max-w-[180px]">
                                 <NumberInput
                                     value={String(validity)}
@@ -533,25 +562,23 @@ export function TicketForm({ threadId, onClose }: Props) {
                             placeholder="Message pour le client..."
                             className="w-full px-3 py-2.5 rounded-xl resize-none focus:outline-none transition-colors"
                             style={{
-                                background: 'rgba(0, 0, 0, 0.3)',
-                                border: '1px solid rgba(255,255,255,0.08)',
-                                color: '#fff',
+                                background: 'var(--color-bg-input)',
+                                border: '1px solid var(--color-border-subtle)',
+                                color: 'var(--color-text-primary)',
                                 fontSize: '16px',
                             }}
                         />
                     </Field>
 
-                    {/* Padding bottom pour pas que le dernier élément soit caché par le footer sticky */}
                     {isMobile && <div style={{ height: 8 }} />}
                 </div>
 
-                {/* ─── FOOTER (sticky bottom mobile) ─── */}
+                {/* FOOTER */}
                 <div
                     className="flex gap-3 p-3 sm:p-4 border-t flex-shrink-0"
                     style={{
-                        borderColor: 'rgba(42, 128, 64, 0.3)',
-                        background: isMobile ? 'rgba(7, 13, 9, 0.98)' : 'rgba(0, 0, 0, 0.3)',
-                        // safe area iPhone home bar
+                        borderColor: 'var(--color-border)',
+                        background: 'var(--color-bg-tertiary)',
                         paddingBottom: isMobile ? 'calc(0.75rem + env(safe-area-inset-bottom, 0))' : undefined,
                     }}
                 >
@@ -578,12 +605,12 @@ export function TicketForm({ threadId, onClose }: Props) {
     )
 }
 
-/* ═══ FIELD ═══════════════════════════════════════════════════════════ */
+/* ─── FIELD ─── */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
             <label className="block text-[10px] uppercase tracking-wider font-semibold mb-1.5"
-                   style={{ color: '#a8c4aa' }}>
+                   style={{ color: 'var(--color-text-secondary)' }}>
                 {label}
             </label>
             {children}
@@ -591,7 +618,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     )
 }
 
-/* ═══ SELECT ═════════════════════════════════════════════════════════ */
+/* ─── SELECT ─── */
 function Select({
                     value, onChange, children, className,
                 }: {
@@ -606,9 +633,9 @@ function Select({
             onChange={(e) => onChange(e.target.value)}
             className={`w-full px-3 py-2.5 rounded-xl focus:outline-none transition-colors cursor-pointer ${className ?? ''}`}
             style={{
-                background: 'rgba(0, 0, 0, 0.4)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: '#fff',
+                background: 'var(--color-bg-input)',
+                border: '1px solid var(--color-border-subtle)',
+                color: 'var(--color-text-primary)',
                 appearance: 'none',
                 backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8c4aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
                 backgroundRepeat: 'no-repeat',
@@ -624,7 +651,7 @@ function Select({
     )
 }
 
-/* ═══ NUMBER INPUT — avec inputMode pour clavier numérique mobile ═══ */
+/* ─── NUMBER INPUT ─── */
 function NumberInput({
                          value, onChange, placeholder, step = '1', min, inputMode,
                      }: {
@@ -648,9 +675,9 @@ function NumberInput({
                 }}
                 className="w-10 h-11 rounded-lg flex items-center justify-center transition-all active:scale-90 flex-shrink-0"
                 style={{
-                    background: 'rgba(42, 128, 64, 0.15)',
-                    border: '1px solid rgba(74, 222, 128, 0.25)',
-                    color: '#4ade80',
+                    background: 'var(--color-success-bg)',
+                    border: '1px solid var(--color-success-border)',
+                    color: 'var(--color-success)',
                 }}
             >
                 <Minus size={14} />
@@ -665,9 +692,9 @@ function NumberInput({
                 min={min}
                 className="flex-1 min-w-0 px-3 py-2.5 text-center font-mono-nums rounded-xl focus:outline-none transition-colors"
                 style={{
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: '#fff',
+                    background: 'var(--color-bg-input)',
+                    border: '1px solid var(--color-border-subtle)',
+                    color: 'var(--color-text-primary)',
                     fontSize: '16px',
                     minHeight: 44,
                 }}
@@ -677,9 +704,9 @@ function NumberInput({
                 onClick={() => onChange(String(current + stepNum))}
                 className="w-10 h-11 rounded-lg flex items-center justify-center transition-all active:scale-90 flex-shrink-0"
                 style={{
-                    background: 'rgba(42, 128, 64, 0.15)',
-                    border: '1px solid rgba(74, 222, 128, 0.25)',
-                    color: '#4ade80',
+                    background: 'var(--color-success-bg)',
+                    border: '1px solid var(--color-success-border)',
+                    color: 'var(--color-success)',
                 }}
             >
                 <Plus size={14} />

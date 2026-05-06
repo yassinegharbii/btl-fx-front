@@ -11,7 +11,6 @@ interface Props {
 
 export function PresenceDot({ userId, fallbackOnline = false, className, style }: Props) {
     const presence = useChatStore((s) => s.presence[userId])
-    // Priorité WS, puis fallback DB
     const isOnline = presence ? presence === 'online' : fallbackOnline
 
     return (
@@ -20,8 +19,8 @@ export function PresenceDot({ userId, fallbackOnline = false, className, style }
             style={{
                 width: '8px',
                 height: '8px',
-                background: isOnline ? '#4ade80' : 'rgba(255,255,255,0.2)',
-                boxShadow: isOnline ? '0 0 8px rgba(74, 222, 128, 0.6)' : 'none',
+                background: isOnline ? 'var(--color-success)' : 'var(--color-text-muted)',
+                boxShadow: isOnline ? '0 0 8px var(--color-success-border)' : 'none',
                 animation: isOnline ? 'pulseDot 1.5s infinite' : 'none',
                 ...style,
             }}

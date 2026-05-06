@@ -55,27 +55,35 @@ export function ExpiryBar({ validUntil, createdAt }: Props) {
     return () => clearInterval(id)
   }, [validUntil, createdAt])
 
+  /* ─── Couleurs adaptatives selon état ─── */
+  const labelColor = expired
+      ? 'var(--color-danger)'
+      : pct > 40
+          ? 'var(--color-text-secondary)'
+          : 'var(--color-warning)'
+
+  const barGradient = expired
+      ? 'linear-gradient(90deg, var(--color-danger), #b91c1c)'
+      : pct > 40
+          ? 'linear-gradient(90deg, var(--color-accent-secondary), var(--color-success))'
+          : 'linear-gradient(90deg, var(--color-warning), #ea580c)'
+
   return (
       <div className="mt-2 space-y-1">
         <div className="flex justify-between text-[10px]">
-          <span style={{ color: '#5a8060' }}>Validité</span>
-          <span className="font-mono-nums font-semibold"
-                style={{ color: expired ? '#fb7185' : pct > 40 ? '#a8c4aa' : '#fbbf24' }}>
-          {label}
-        </span>
+          <span style={{ color: 'var(--color-text-tertiary)' }}>Validité</span>
+          <span className="font-mono-nums font-semibold" style={{ color: labelColor }}>
+                    {label}
+                </span>
         </div>
         <div className="h-1 w-full rounded-full overflow-hidden"
-             style={{ background: 'rgba(255,255,255,0.06)' }}>
+             style={{ background: 'var(--color-bg-input)' }}>
           <div
               className="h-full rounded-full transition-all duration-1000 ease-linear"
               style={{
                 width: `${pct}%`,
-                background: expired
-                    ? 'linear-gradient(90deg, #fb7185, #dc2626)'
-                    : pct > 40
-                        ? 'linear-gradient(90deg, #2a8040, #4ade80)'
-                        : 'linear-gradient(90deg, #fbbf24, #f59e0b)',
-                boxShadow: !expired ? '0 0 8px rgba(74, 222, 128, 0.3)' : 'none',
+                background: barGradient,
+                boxShadow: !expired ? '0 0 8px var(--color-success-bg)' : 'none',
               }}
           />
         </div>

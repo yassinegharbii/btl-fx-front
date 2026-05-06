@@ -77,43 +77,44 @@ export function TraderSidebar() {
     return (
         <div className="flex flex-col h-full overflow-hidden"
              style={{
-                 background: 'rgba(10, 31, 14, 0.9)',
-                 borderRight: '1px solid rgba(42, 128, 64, 0.3)',
+                 background: 'var(--color-bg-secondary)',
+                 borderRight: '1px solid var(--color-border)',
              }}>
 
-            {/* SECTION COURS — agrandie */}
+            {/* SECTION COURS */}
             <div className="flex-shrink-0 max-h-[45%] flex flex-col"
-                 style={{ borderBottom: '1px solid rgba(42, 128, 64, 0.25)' }}>
+                 style={{ borderBottom: '1px solid var(--color-divider)' }}>
 
                 <div className="px-4 py-3 flex-shrink-0"
                      style={{
-                         background: 'rgba(15, 58, 26, 0.8)',
-                         borderBottom: '1px solid rgba(42, 128, 64, 0.2)',
+                         background: 'var(--color-bg-tertiary)',
+                         borderBottom: '1px solid var(--color-border-subtle)',
                      }}>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <TrendingUp size={13} style={{ color: '#4ade80' }} />
+                            <TrendingUp size={13} style={{ color: 'var(--color-success)' }} />
                             <span className="text-[11px] font-bold uppercase tracking-widest"
-                                  style={{ color: '#a8c4aa' }}>
+                                  style={{ color: 'var(--color-text-secondary)' }}>
                                 Cours de change
                             </span>
                         </div>
                         <div className="flex items-center gap-1.5">
                             <span className="w-1.5 h-1.5 rounded-full inline-block"
-                                  style={{ background: '#4ade80', animation: 'pulseDot 1.5s infinite' }} />
-                            <span className="text-[10px] uppercase tracking-widest" style={{ color: '#5a8060' }}>
+                                  style={{ background: 'var(--color-success)', animation: 'pulseDot 1.5s infinite' }} />
+                            <span className="text-[10px] uppercase tracking-widest"
+                                  style={{ color: 'var(--color-text-tertiary)' }}>
                                 Live
                             </span>
                         </div>
                     </div>
-                    <div className="text-[11px] font-mono-nums mt-1" style={{ color: '#5a8060' }}>
+                    <div className="text-[11px] font-mono-nums mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
                         {liveTime}
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
                     {ratesLoading && (
-                        <div className="p-4 text-center text-[12px]" style={{ color: '#5a8060' }}>
+                        <div className="p-4 text-center text-[12px]" style={{ color: 'var(--color-text-tertiary)' }}>
                             Chargement...
                         </div>
                     )}
@@ -121,26 +122,28 @@ export function TraderSidebar() {
                         <div key={rate.code}
                              className="flex items-center px-3 py-2.5 transition-colors"
                              style={{
-                                 borderBottom: '1px solid rgba(26, 92, 42, 0.15)',
-                                 background: i % 2 !== 0 ? 'rgba(26, 92, 42, 0.06)' : 'transparent',
+                                 borderBottom: '1px solid var(--color-border-subtle)',
+                                 background: i % 2 !== 0 ? 'var(--color-bg-tertiary)' : 'transparent',
                              }}>
                             <div className="flex items-center gap-2.5 flex-1 min-w-0">
                                 <div className="flex-shrink-0 w-10 h-7 rounded overflow-hidden border flex items-center justify-center"
                                      style={{
-                                         background: 'rgba(255,255,255,0.05)',
-                                         borderColor: 'rgba(255,255,255,0.08)',
+                                         background: 'var(--color-bg-input)',
+                                         borderColor: 'var(--color-border-subtle)',
                                      }}>
                                     <FlagImg code={rate.code} emoji={rate.flag} />
                                 </div>
-                                <span className="text-[14px] font-bold text-white">{rate.code}</span>
+                                <span className="text-[14px] font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                    {rate.code}
+                                </span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="w-14 text-right font-mono-nums text-[13px] font-bold"
-                                      style={{ color: '#4ade80' }}>
+                                      style={{ color: 'var(--color-success)' }}>
                                     {rate.buy.toFixed(3)}
                                 </span>
                                 <span className="w-14 text-right font-mono-nums text-[13px] font-bold"
-                                      style={{ color: '#fb7185' }}>
+                                      style={{ color: 'var(--color-danger)' }}>
                                     {rate.sell.toFixed(3)}
                                 </span>
                             </div>
@@ -152,17 +155,17 @@ export function TraderSidebar() {
             {/* SÉPARATEUR + COMPTEUR */}
             <div className="flex-shrink-0 px-4 py-2.5 flex items-center gap-2"
                  style={{
-                     background: 'linear-gradient(90deg, rgba(15,58,26,0.6), rgba(10,31,14,0.9), rgba(15,58,26,0.6))',
-                     borderTop: '1px solid rgba(42, 128, 64, 0.3)',
-                     borderBottom: '1px solid rgba(42, 128, 64, 0.15)',
+                     background: 'var(--color-bg-tertiary)',
+                     borderTop: '1px solid var(--color-border)',
+                     borderBottom: '1px solid var(--color-border-subtle)',
                  }}>
-                <Users size={12} style={{ color: '#4ade80' }} />
+                <Users size={12} style={{ color: 'var(--color-success)' }} />
                 <span className="text-[11px] font-bold uppercase tracking-widest flex-1"
-                      style={{ color: '#a8c4aa' }}>
+                      style={{ color: 'var(--color-text-secondary)' }}>
                     Clients actifs
                 </span>
                 <span className="text-[11px] font-mono-nums px-2 py-0.5 rounded font-bold"
-                      style={{ background: 'rgba(74, 222, 128, 0.15)', color: '#4ade80' }}>
+                      style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)' }}>
                     {filteredThreads.length}{threads && filteredThreads.length !== threads.length ? `/${threads.length}` : ''}
                 </span>
             </div>
@@ -170,13 +173,13 @@ export function TraderSidebar() {
             {/* BARRE DE RECHERCHE */}
             <div className="flex-shrink-0 px-3 py-2.5"
                  style={{
-                     background: 'rgba(15, 58, 26, 0.4)',
-                     borderBottom: '1px solid rgba(42, 128, 64, 0.15)',
+                     background: 'var(--color-bg-tertiary)',
+                     borderBottom: '1px solid var(--color-border-subtle)',
                  }}>
                 <div className="relative">
                     <Search size={12}
                             className="absolute left-3 top-1/2 -translate-y-1/2"
-                            style={{ color: '#5a8060' }} />
+                            style={{ color: 'var(--color-text-tertiary)' }} />
                     <input
                         type="text"
                         value={search}
@@ -184,19 +187,19 @@ export function TraderSidebar() {
                         placeholder="Rechercher un client..."
                         className="w-full pl-8 pr-8 py-2 text-[12px] rounded-md focus:outline-none transition-colors"
                         style={{
-                            background: 'rgba(0, 0, 0, 0.4)',
-                            border: '1px solid rgba(255,255,255,0.06)',
-                            color: '#fff',
+                            background: 'var(--color-bg-input)',
+                            border: '1px solid var(--color-border-subtle)',
+                            color: 'var(--color-text-primary)',
                             fontSize: '14px',
                         }}
-                        onFocus={(e) => (e.currentTarget.style.borderColor = 'rgba(74, 222, 128, 0.4)')}
-                        onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
+                        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--color-success-border)')}
+                        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-border-subtle)')}
                     />
                     {search && (
                         <button
                             onClick={() => setSearch('')}
                             className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded flex items-center justify-center"
-                            style={{ color: '#5a8060' }}
+                            style={{ color: 'var(--color-text-tertiary)' }}
                             title="Effacer"
                         >
                             <X size={11} />
@@ -221,14 +224,14 @@ export function TraderSidebar() {
                 ))}
 
                 {!threadsLoading && threads && threads.length > 0 && filteredThreads.length === 0 && (
-                    <div className="px-4 py-6 text-center text-[12px]" style={{ color: '#5a8060' }}>
+                    <div className="px-4 py-6 text-center text-[12px]" style={{ color: 'var(--color-text-tertiary)' }}>
                         Aucun client ne correspond à<br />
-                        <span className="font-semibold" style={{ color: '#a8c4aa' }}>« {search} »</span>
+                        <span className="font-semibold" style={{ color: 'var(--color-text-secondary)' }}>« {search} »</span>
                     </div>
                 )}
 
                 {!threadsLoading && !threads?.length && (
-                    <div className="px-4 py-6 text-center text-[12px]" style={{ color: '#5a8060' }}>
+                    <div className="px-4 py-6 text-center text-[12px]" style={{ color: 'var(--color-text-tertiary)' }}>
                         Aucune discussion active
                     </div>
                 )}

@@ -17,7 +17,7 @@ export function TicketPopup({ ticket }: Props) {
     const accept  = useAcceptTicket()
     const decline = useDeclineTicket()
 
-    /* ─── Auto-refresh à expiration ──────────────────────────────────── */
+    /* ─── Auto-refresh à expiration ─── */
     useEffect(() => {
         if (!ticket.valid_until) return
 
@@ -40,25 +40,25 @@ export function TicketPopup({ ticket }: Props) {
         <div
             className="fixed inset-0 z-[100] flex items-center justify-center sm:p-4"
             style={{
-                background: 'rgba(7, 17, 11, 0.85)',
+                background: 'var(--color-bg-overlay)',
                 backdropFilter: 'blur(12px)',
             }}
         >
             <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                    boxShadow: 'inset 0 0 120px rgba(26,92,42,0.4)',
+                    boxShadow: 'inset 0 0 120px var(--color-success-bg)',
                     animation: 'alertPulse 2s ease-in-out infinite',
                 }}
             />
 
-            {/* ✅ Mobile : fullscreen plein écran. Desktop : modale centrée. */}
+            {/* Mobile : fullscreen. Desktop : modale centrée. */}
             <div
                 className="relative w-full sm:max-w-md sm:rounded-2xl overflow-hidden flex flex-col h-full sm:h-auto sm:max-h-[92vh]"
                 style={{
-                    background: 'linear-gradient(180deg, #0f3a1a 0%, #0a1f0e 100%)',
-                    border: '2px solid rgba(42, 128, 64, 0.6)',
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(74, 222, 128, 0.15)',
+                    background: 'var(--color-bg-elevated)',
+                    border: '2px solid var(--color-success-border)',
+                    boxShadow: 'var(--shadow-lg)',
                     animation: 'fadeUp 0.3s ease-out',
                 }}
             >
@@ -66,22 +66,26 @@ export function TicketPopup({ ticket }: Props) {
                 <div
                     className="px-4 sm:px-6 py-3 sm:py-4 border-b flex items-center gap-3 flex-shrink-0"
                     style={{
-                        background: 'rgba(26, 92, 42, 0.3)',
-                        borderColor: 'rgba(42, 128, 64, 0.3)',
+                        background: 'var(--color-bg-tertiary)',
+                        borderColor: 'var(--color-border)',
                     }}
                 >
                     <div
                         className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{
-                            background: 'rgba(74, 222, 128, 0.15)',
-                            border: '1px solid rgba(74, 222, 128, 0.3)',
+                            background: 'var(--color-success-bg)',
+                            border: '1px solid var(--color-success-border)',
                         }}
                     >
-                        <AlertCircle size={18} style={{ color: '#4ade80' }} />
+                        <AlertCircle size={18} style={{ color: 'var(--color-success)' }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h2 className="text-sm sm:text-base font-bold text-white">Proposition de taux</h2>
-                        <p className="text-[11px] sm:text-xs mt-0.5" style={{ color: '#a8c4aa' }}>
+                        <h2 className="text-sm sm:text-base font-bold"
+                            style={{ color: 'var(--color-text-primary)' }}>
+                            Proposition de taux
+                        </h2>
+                        <p className="text-[11px] sm:text-xs mt-0.5"
+                           style={{ color: 'var(--color-text-secondary)' }}>
                             Votre trader vous propose une transaction
                         </p>
                     </div>
@@ -91,7 +95,8 @@ export function TicketPopup({ ticket }: Props) {
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4">
                     {/* Ref + statut */}
                     <div className="flex items-center justify-between">
-                        <span className="font-mono-nums text-sm font-bold text-white tracking-wide">
+                        <span className="font-mono-nums text-sm font-bold tracking-wide"
+                              style={{ color: 'var(--color-text-primary)' }}>
                             {ticket.ref_ticket}
                         </span>
                         <TicketBadge status={ticket.order_status} />
@@ -101,20 +106,20 @@ export function TicketPopup({ ticket }: Props) {
                     <div
                         className="text-center py-3 rounded-xl"
                         style={{
-                            background: 'rgba(0,0,0,0.3)',
-                            border: '1px solid rgba(42, 128, 64, 0.25)',
+                            background: 'var(--color-bg-tertiary)',
+                            border: '1px solid var(--color-border)',
                         }}
                     >
                         <div
                             className="text-[10px] uppercase tracking-widest mb-1"
-                            style={{ color: '#5a8060' }}
+                            style={{ color: 'var(--color-text-tertiary)' }}
                         >
                             Opération
                         </div>
                         <div
                             className="text-lg sm:text-xl font-bold"
                             style={{
-                                color: ticket.operation === 'BUY' ? '#4ade80' : '#fb7185',
+                                color: ticket.operation === 'BUY' ? 'var(--color-success)' : 'var(--color-danger)',
                             }}
                         >
                             {ticket.operation === 'BUY' ? '▲ Achat' : '▼ Vente'} {ticket.currency_code}
@@ -147,18 +152,21 @@ export function TicketPopup({ ticket }: Props) {
                     <div
                         className="text-center py-3 sm:py-4 rounded-xl"
                         style={{
-                            background: 'linear-gradient(135deg, rgba(42, 128, 64, 0.25), rgba(74, 222, 128, 0.1))',
-                            border: '1px solid rgba(74, 222, 128, 0.35)',
+                            background: 'linear-gradient(135deg, var(--color-success-bg), var(--color-bg-tertiary))',
+                            border: '1px solid var(--color-success-border)',
                         }}
                     >
-                        <div className="text-[10px] uppercase tracking-widest mb-1" style={{ color: '#a8c4aa' }}>
+                        <div className="text-[10px] uppercase tracking-widest mb-1"
+                             style={{ color: 'var(--color-text-secondary)' }}>
                             Taux négocié
                         </div>
-                        <div className="font-mono-nums text-2xl sm:text-3xl font-bold text-white">
+                        <div className="font-mono-nums text-2xl sm:text-3xl font-bold"
+                             style={{ color: 'var(--color-text-primary)' }}>
                             {ticket.negotiated_price?.toFixed(4)}
                         </div>
                         {ticket.market_rate_used != null && (
-                            <div className="text-[10px] mt-1.5 font-mono-nums" style={{ color: '#5a8060' }}>
+                            <div className="text-[10px] mt-1.5 font-mono-nums"
+                                 style={{ color: 'var(--color-text-tertiary)' }}>
                                 Marché : <span className="font-semibold">{ticket.market_rate_used.toFixed(4)}</span>
                             </div>
                         )}
@@ -169,9 +177,9 @@ export function TicketPopup({ ticket }: Props) {
                         <div
                             className="px-3 py-2 rounded-lg italic text-xs"
                             style={{
-                                background: 'rgba(26, 92, 42, 0.2)',
-                                borderLeft: '2px solid #2a8040',
-                                color: '#e8f0e9',
+                                background: 'var(--color-success-bg)',
+                                borderLeft: '2px solid var(--color-accent-secondary)',
+                                color: 'var(--color-text-primary)',
                             }}
                         >
                             « {ticket.trader_comment} »
@@ -183,15 +191,17 @@ export function TicketPopup({ ticket }: Props) {
                         <div
                             className="px-3 py-2.5 rounded-lg space-y-2"
                             style={{
-                                background: 'rgba(0, 0, 0, 0.25)',
-                                border: '1px solid rgba(42, 128, 64, 0.25)',
+                                background: 'var(--color-bg-tertiary)',
+                                border: '1px solid var(--color-border)',
                             }}
                         >
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] uppercase tracking-wider" style={{ color: '#a8c4aa' }}>
+                                <span className="text-[10px] uppercase tracking-wider"
+                                      style={{ color: 'var(--color-text-secondary)' }}>
                                     Coupures {ticket.currency_code}
                                 </span>
-                                <span className="text-[10px] font-mono-nums" style={{ color: '#5a8060' }}>
+                                <span className="text-[10px] font-mono-nums"
+                                      style={{ color: 'var(--color-text-tertiary)' }}>
                                     {ticket.bills.reduce((n, b) => n + b.quantity, 0)} billets
                                 </span>
                             </div>
@@ -201,17 +211,20 @@ export function TicketPopup({ ticket }: Props) {
                                         key={b.id}
                                         className="flex items-center justify-between px-2.5 py-1.5 rounded"
                                         style={{
-                                            background: 'rgba(42, 128, 64, 0.12)',
-                                            border: '1px solid rgba(74, 222, 128, 0.15)',
+                                            background: 'var(--color-success-bg)',
+                                            border: '1px solid var(--color-success-border)',
                                         }}
                                     >
-                                        <span className="text-xs font-mono-nums font-semibold text-white">
+                                        <span className="text-xs font-mono-nums font-semibold"
+                                              style={{ color: 'var(--color-text-primary)' }}>
                                             {b.bill_value}
-                                            <span className="text-[9px] ml-1 font-normal" style={{ color: '#a8c4aa' }}>
+                                            <span className="text-[9px] ml-1 font-normal"
+                                                  style={{ color: 'var(--color-text-secondary)' }}>
                                                 {ticket.currency_code}
                                             </span>
                                         </span>
-                                        <span className="text-[11px] font-mono-nums font-bold" style={{ color: '#4ade80' }}>
+                                        <span className="text-[11px] font-mono-nums font-bold"
+                                              style={{ color: 'var(--color-success)' }}>
                                             × {b.quantity}
                                         </span>
                                     </div>
@@ -224,12 +237,12 @@ export function TicketPopup({ ticket }: Props) {
                     <ExpiryBar validUntil={ticket.valid_until} createdAt={ticket.created_at} />
                 </div>
 
-                {/* ACTIONS — boutons gros et tactiles */}
+                {/* ACTIONS */}
                 <div
                     className="p-3 sm:p-4 grid grid-cols-2 gap-3 border-t flex-shrink-0"
                     style={{
-                        borderColor: 'rgba(42, 128, 64, 0.3)',
-                        background: 'rgba(0,0,0,0.2)',
+                        borderColor: 'var(--color-border)',
+                        background: 'var(--color-bg-tertiary)',
                     }}
                 >
                     <button
@@ -238,9 +251,9 @@ export function TicketPopup({ ticket }: Props) {
                         className="py-3.5 rounded-xl font-semibold text-sm transition-all
                                    active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2 min-h-[48px]"
                         style={{
-                            background: 'rgba(251, 113, 133, 0.12)',
-                            border: '1px solid rgba(251, 113, 133, 0.3)',
-                            color: '#fb7185',
+                            background: 'var(--color-danger-bg)',
+                            border: '1px solid var(--color-danger-border)',
+                            color: 'var(--color-danger)',
                         }}
                     >
                         <X size={16} />
@@ -252,9 +265,9 @@ export function TicketPopup({ ticket }: Props) {
                         className="py-3.5 rounded-xl font-semibold text-sm transition-all
                                    active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2 text-white min-h-[48px]"
                         style={{
-                            background: 'linear-gradient(135deg, #2a8040, #1a5c2a)',
-                            border: '1px solid rgba(74, 222, 128, 0.4)',
-                            boxShadow: '0 4px 20px rgba(26, 92, 42, 0.4)',
+                            background: 'linear-gradient(135deg, var(--color-accent-secondary), var(--color-accent-primary))',
+                            border: '1px solid var(--color-success-border)',
+                            boxShadow: 'var(--shadow-glow)',
                         }}
                     >
                         <Check size={16} />
@@ -278,9 +291,7 @@ export function TicketPopup({ ticket }: Props) {
 }
 
 function InfoCard({
-                      label,
-                      value,
-                      unit,
+                      label, value, unit,
                   }: {
     label: string
     value: string
@@ -290,17 +301,20 @@ function InfoCard({
         <div
             className="px-3 py-2 rounded-lg"
             style={{
-                background: 'rgba(0, 0, 0, 0.25)',
-                border: '1px solid rgba(42, 128, 64, 0.2)',
+                background: 'var(--color-bg-tertiary)',
+                border: '1px solid var(--color-border-subtle)',
             }}
         >
-            <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: '#5a8060' }}>
+            <div className="text-[9px] uppercase tracking-wider mb-1"
+                 style={{ color: 'var(--color-text-tertiary)' }}>
                 {label}
             </div>
-            <div className="font-mono-nums text-sm font-semibold text-white truncate">
+            <div className="font-mono-nums text-sm font-semibold truncate"
+                 style={{ color: 'var(--color-text-primary)' }}>
                 {value}
                 {unit && (
-                    <span className="text-[10px] ml-1 font-normal" style={{ color: '#a8c4aa' }}>
+                    <span className="text-[10px] ml-1 font-normal"
+                          style={{ color: 'var(--color-text-secondary)' }}>
                         {unit}
                     </span>
                 )}
