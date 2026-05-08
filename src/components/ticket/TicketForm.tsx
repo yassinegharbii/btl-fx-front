@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { X, Plus, Minus, Trash2, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { X, Plus, Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 
 import { api }              from '@/lib/axios'
 import { useCreateTicket }  from '@/hooks/useTickets'
@@ -8,7 +8,7 @@ import { Button }           from '@/components/ui/Button'
 import { useIsMobile }      from '@/hooks/useIsMobile'
 
 import type {
-    TicketCreatePayload, Operation, DeliveryMode,
+    TicketCreatePayload, Operation,
 } from '@/types/ticket.types'
 
 interface Props {
@@ -31,44 +31,18 @@ const CURRENCIES_STATIC = [
     { currency_id: 12, code: 'BHD', label: 'Dinar Bahreïni' },
 ]
 
-const BILLS_BY_CURRENCY: Record<string, string[]> = {
-    EUR: ['5', '10', '20', '50', '100', '200', '500'],
-    USD: ['1', '2', '5', '10', '20', '50', '100'],
-    GBP: ['5', '10', '20', '50'],
-    CHF: ['10', '20', '50', '100', '200', '1000'],
-    CAD: ['5', '10', '20', '50', '100'],
-    AED: ['5', '10', '20', '50', '100', '200', '500', '1000'],
-    SAR: ['1', '5', '10', '50', '100', '200', '500'],
-    QAR: ['1', '5', '10', '50', '100', '500'],
-    KWD: ['1/4', '1/2', '1', '5', '10', '20'],
-    LYD: ['1', '5', '10', '20', '50'],
-    JPY: ['1000', '2000', '5000', '10000'],
-    BHD: ['1/2', '1', '5', '10', '20'],
-}
-
-const DELIVERY_MODES: { value: DeliveryMode; label: string }[] = [
-    { value: 'CASH',      label: 'Espèces' },
-    { value: 'ACCOUNT',   label: 'Virement compte' },
-    { value: 'TRANSFER',  label: 'Virement externe' },
-    { value: 'CHEQUE',    label: 'Chèque' },
-    { value: 'BORDEREAU', label: 'Bordereau' },
-]
-
+/* ─── Validité limitée : 15 min ou 30 min ─── */
 const QUICK_VALIDITY = [
     { label: '15 min', value: 15 },
     { label: '30 min', value: 30 },
-    { label: '1 h',    value: 60 },
-    { label: '2 h',    value: 120 },
-    { label: '4 h',    value: 240 },
-    { label: '8 h',    value: 480 },
-    { label: '12 h',   value: 720 },
-    { label: '24 h',   value: 1440 },
 ]
 
-interface BillEntry {
-    bill_value: string
-    quantity:   number
-}
+/* Limite max pour la saisie manuelle */
+const VALIDITY_MIN = 5
+const VALIDITY_MAX = 30
+
+/* Mode de livraison forcé à CASH */
+const DELIVERY_MODE_CASH = 'CASH' as const
 
 export function TicketForm({ threadId, onClose }: Props) {
     const create   = useCreateTicket(threadId)
@@ -77,12 +51,10 @@ export function TicketForm({ threadId, onClose }: Props) {
     const [currencyId, setCurrencyId] = useState<number>(0)
     const [operation,  setOperation]  = useState<Operation>('BUY')
     const [amount,     setAmount]     = useState('')
-    const [delivery,   setDelivery]   = useState<DeliveryMode>('CASH')
     const [branchCode, setBranchCode] = useState('')
     const [price,      setPrice]      = useState('')
-    const [validity,   setValidity]   = useState<number>(30)
+    const [validity,   setValidity]   = useState<number>(15)
     const [comment,    setComment]    = useState('')
-    const [bills,      setBills]      = useState<BillEntry[]>([])
 
     useEffect(() => {
         const original = document.body.style.overflow
@@ -101,47 +73,20 @@ export function TicketForm({ threadId, onClose }: Props) {
         [currencyId]
     )
 
-    const showBillsSection = delivery === 'CASH' && operation === 'BUY'
-    const availableBills = selectedCurrency ? BILLS_BY_CURRENCY[selectedCurrency.code] ?? [] : []
-
-    const totalBillsValue = useMemo(() => {
-        return bills.reduce((sum, b) => {
-            const val = b.bill_value.includes('/')
-                ? eval(b.bill_value)
-                : parseFloat(b.bill_value)
-            return sum + (val * b.quantity)
-        }, 0)
-    }, [bills])
-
     const amountNum = parseFloat(amount) || 0
-    const hasBills = bills.length > 0
-    const billsMatch = !showBillsSection || !hasBills || Math.abs(totalBillsValue - amountNum) < 0.001
 
     const tndEquivalent = useMemo(() => {
         const p = parseFloat(price)
         return amountNum && p ? (amountNum * p).toFixed(3) : '—'
     }, [amountNum, price])
 
-    useEffect(() => {
-        if (!showBillsSection) setBills([])
-    }, [showBillsSection])
-
-    const addBill = () => {
-        if (availableBills.length === 0) return
-        setBills([...bills, { bill_value: availableBills[0], quantity: 1 }])
-    }
-    const removeBill = (i: number) => setBills(bills.filter((_, idx) => idx !== i))
-    const updateBill = (i: number, field: 'bill_value' | 'quantity', value: string | number) => {
-        setBills(bills.map((b, idx) => idx === i ? { ...b, [field]: value } : b))
-    }
-
     const canSubmit =
         currencyId > 0 &&
         amountNum > 0 &&
         parseFloat(price) > 0 &&
         branchCode !== '' &&
-        validity > 0 &&
-        billsMatch
+        validity >= VALIDITY_MIN &&
+        validity <= VALIDITY_MAX
 
     const handleSubmit = () => {
         if (!canSubmit) return
@@ -149,12 +94,12 @@ export function TicketForm({ threadId, onClose }: Props) {
             currency_id:      currencyId,
             operation,
             order_amount:     amountNum,
-            delivery_mode:    delivery,
+            delivery_mode:    DELIVERY_MODE_CASH,  // ✅ Toujours CASH
             branch_code:      branchCode,
             negotiated_price: parseFloat(price),
             validity_min:     validity,
             trader_comment:   comment || null,
-            bills:            showBillsSection ? bills : [],
+            bills:            [],                  // ✅ Toujours vide
         }
         create.mutate(payload, { onSuccess: onClose })
     }
@@ -334,183 +279,21 @@ export function TicketForm({ threadId, onClose }: Props) {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <Field label="Mode de livraison">
-                            <Select value={delivery} onChange={(v) => setDelivery(v as DeliveryMode)}>
-                                {DELIVERY_MODES.map((m) => (
-                                    <option key={m.value} value={m.value}>{m.label}</option>
-                                ))}
-                            </Select>
-                        </Field>
-                        <Field label="Agence">
-                            <Select value={branchCode} onChange={setBranchCode}>
-                                <option value="">— Sélectionner —</option>
-                                {branches?.map((b: any) => (
-                                    <option key={b.branch_code} value={b.branch_code}>
-                                        {b.branch_code} — {b.branch_name}
-                                    </option>
-                                ))}
-                            </Select>
-                        </Field>
-                    </div>
+                    {/* AGENCE — seul champ restant (mode livraison enlevé) */}
+                    <Field label="Agence">
+                        <Select value={branchCode} onChange={setBranchCode}>
+                            <option value="">— Sélectionner —</option>
+                            {branches?.map((b: any) => (
+                                <option key={b.branch_code} value={b.branch_code}>
+                                    {b.branch_code} — {b.branch_name}
+                                </option>
+                            ))}
+                        </Select>
+                    </Field>
 
-                    {/* COUPURES */}
-                    {showBillsSection && (
-                        <div
-                            className="p-3 sm:p-3.5 rounded-xl space-y-2.5"
-                            style={{
-                                background: 'var(--color-bg-tertiary)',
-                                border: '1px solid var(--color-border)',
-                            }}
-                        >
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0 flex-1">
-                                    <div className="text-xs font-semibold"
-                                         style={{ color: 'var(--color-text-primary)' }}>
-                                        Coupures {selectedCurrency?.code ?? ''}
-                                        <span className="ml-1.5 text-[10px] font-normal"
-                                              style={{ color: 'var(--color-text-tertiary)' }}>
-                                            (optionnel)
-                                        </span>
-                                    </div>
-                                    <div className="text-[10px] mt-0.5"
-                                         style={{ color: 'var(--color-text-tertiary)' }}>
-                                        Si ajoutées, total = montant
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={addBill}
-                                    disabled={availableBills.length === 0}
-                                    className="px-3 py-2 rounded-lg text-[11px] font-semibold flex items-center gap-1.5 transition-all disabled:opacity-30 active:scale-95 flex-shrink-0"
-                                    style={{
-                                        background: 'var(--color-success-bg)',
-                                        border: '1px solid var(--color-success-border)',
-                                        color: 'var(--color-success)',
-                                        minHeight: 40,
-                                    }}
-                                >
-                                    <Plus size={13} /> Ajouter
-                                </button>
-                            </div>
-
-                            {bills.length === 0 && (
-                                <div className="text-center py-3 text-[11px]"
-                                     style={{ color: 'var(--color-text-tertiary)' }}>
-                                    Aucune coupure ajoutée
-                                </div>
-                            )}
-
-                            <div className="space-y-2">
-                                {bills.map((bill, i) => (
-                                    <div
-                                        key={i}
-                                        className="flex items-center gap-2 p-2 rounded-lg"
-                                        style={{
-                                            background: 'var(--color-bg-input)',
-                                            border: '1px solid var(--color-border-subtle)',
-                                        }}
-                                    >
-                                        <Select
-                                            value={bill.bill_value}
-                                            onChange={(v) => updateBill(i, 'bill_value', v)}
-                                            className="flex-1 min-w-0"
-                                        >
-                                            {availableBills.map((b) => (
-                                                <option key={b} value={b}>{b}</option>
-                                            ))}
-                                        </Select>
-
-                                        <span className="text-sm font-bold flex-shrink-0"
-                                              style={{ color: 'var(--color-text-tertiary)' }}>
-                                            ×
-                                        </span>
-
-                                        <div className="flex items-center gap-1 flex-shrink-0">
-                                            <button
-                                                type="button"
-                                                onClick={() => updateBill(i, 'quantity', Math.max(1, bill.quantity - 1))}
-                                                className="w-9 h-9 rounded-lg flex items-center justify-center transition-all active:scale-90"
-                                                style={{
-                                                    background: 'var(--color-bg-input)',
-                                                    border: '1px solid var(--color-border-subtle)',
-                                                    color: 'var(--color-text-secondary)',
-                                                }}
-                                            >
-                                                <Minus size={14} />
-                                            </button>
-                                            <input
-                                                type="number"
-                                                inputMode="numeric"
-                                                min={1}
-                                                value={bill.quantity}
-                                                onChange={(e) => updateBill(i, 'quantity', Math.max(1, Number(e.target.value)))}
-                                                className="w-14 text-center px-1 py-1.5 rounded-lg font-mono-nums focus:outline-none"
-                                                style={{
-                                                    background: 'var(--color-bg-input)',
-                                                    border: '1px solid var(--color-border-subtle)',
-                                                    color: 'var(--color-text-primary)',
-                                                    fontSize: '16px',
-                                                }}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => updateBill(i, 'quantity', bill.quantity + 1)}
-                                                className="w-9 h-9 rounded-lg flex items-center justify-center transition-all active:scale-90"
-                                                style={{
-                                                    background: 'var(--color-bg-input)',
-                                                    border: '1px solid var(--color-border-subtle)',
-                                                    color: 'var(--color-text-secondary)',
-                                                }}
-                                            >
-                                                <Plus size={14} />
-                                            </button>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => removeBill(i)}
-                                            className="w-9 h-9 rounded-lg flex items-center justify-center transition-all active:scale-90 flex-shrink-0"
-                                            style={{
-                                                background: 'var(--color-danger-bg)',
-                                                border: '1px solid var(--color-danger-border)',
-                                                color: 'var(--color-danger)',
-                                            }}
-                                            aria-label="Supprimer"
-                                        >
-                                            <Trash2 size={13} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {bills.length > 0 && (
-                                <div
-                                    className="flex items-center justify-between pt-2.5 border-t"
-                                    style={{ borderColor: 'var(--color-border-subtle)' }}
-                                >
-                                    <span className="text-[11px] font-semibold"
-                                          style={{ color: 'var(--color-text-secondary)' }}>
-                                        Total coupures
-                                    </span>
-                                    <span
-                                        className="font-mono-nums text-sm font-bold"
-                                        style={{
-                                            color: Math.abs(totalBillsValue - amountNum) < 0.001
-                                                ? 'var(--color-success)'
-                                                : 'var(--color-danger)',
-                                        }}
-                                    >
-                                        {totalBillsValue.toFixed(3)}
-                                        {Math.abs(totalBillsValue - amountNum) >= 0.001 && ` ≠ ${amountNum.toFixed(3)}`}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
+                    {/* VALIDITÉ — 15 ou 30 min uniquement, manuel max 30 min */}
                     <Field label="Validité du ticket">
-                        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                             {QUICK_VALIDITY.map((opt) => {
                                 const active = validity === opt.value
                                 return (
@@ -518,7 +301,7 @@ export function TicketForm({ threadId, onClose }: Props) {
                                         key={opt.value}
                                         type="button"
                                         onClick={() => setValidity(opt.value)}
-                                        className="py-2.5 sm:py-2 rounded-lg text-xs font-medium border transition-all active:scale-95"
+                                        className="py-3 rounded-lg text-sm font-medium border transition-all active:scale-95"
                                         style={{
                                             background: active
                                                 ? 'var(--color-success-bg)'
@@ -529,7 +312,7 @@ export function TicketForm({ threadId, onClose }: Props) {
                                             color: active
                                                 ? 'var(--color-success)'
                                                 : 'var(--color-text-tertiary)',
-                                            minHeight: 40,
+                                            minHeight: 44,
                                         }}
                                     >
                                         {opt.label}
@@ -540,14 +323,18 @@ export function TicketForm({ threadId, onClose }: Props) {
                         <div className="mt-2 flex items-center gap-2">
                             <span className="text-[10px] flex-shrink-0"
                                   style={{ color: 'var(--color-text-tertiary)' }}>
-                                ou minutes :
+                                ou minutes (max {VALIDITY_MAX}) :
                             </span>
                             <div className="flex-1 max-w-[180px]">
                                 <NumberInput
                                     value={String(validity)}
-                                    onChange={(v) => setValidity(Math.max(5, Math.min(1440, Number(v) || 5)))}
+                                    onChange={(v) => {
+                                        const num = Number(v) || VALIDITY_MIN
+                                        // clamp dans [5, 30]
+                                        setValidity(Math.max(VALIDITY_MIN, Math.min(VALIDITY_MAX, num)))
+                                    }}
                                     step="5"
-                                    min={5}
+                                    min={VALIDITY_MIN}
                                     inputMode="numeric"
                                 />
                             </div>

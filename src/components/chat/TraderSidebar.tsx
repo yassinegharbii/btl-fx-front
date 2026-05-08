@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { TrendingUp, Users, Search, X } from 'lucide-react'
+import { TrendingUp, Users, Search, X, Edit2, Check } from 'lucide-react'
 
-import { useAllRatesSidebar } from '@/hooks/useRates'
 import { useAllThreads }      from '@/hooks/useThread'
 import { useAllClients }      from '@/hooks/useUsers'
+import { useTraderRates, useUpdateTraderRate } from '@/hooks/useTraderRates'
 import { ThreadItem }         from './ThreadItem'
 import { Spinner }            from '@/components/ui/Spinner'
+import type { TraderRate }    from '@/types/traderRate.types'
 
 function FlagImg({ code, emoji }: { code: string; emoji: string | null }) {
     const [err, setErr] = useState(false)
@@ -38,7 +39,7 @@ function useLiveTime() {
 }
 
 export function TraderSidebar() {
-    const { data: rates, isLoading: ratesLoading } = useAllRatesSidebar()
+    const { data: ratesData, isLoading: ratesLoading } = useTraderRates()
     const liveTime = useLiveTime()
 
     const { data: threads, isLoading: threadsLoading } = useAllThreads()
@@ -81,7 +82,7 @@ export function TraderSidebar() {
                  borderRight: '1px solid var(--color-border)',
              }}>
 
-            {/* SECTION COURS */}
+            {/* SECTION TAUX */}
             <div className="flex-shrink-0 max-h-[45%] flex flex-col"
                  style={{ borderBottom: '1px solid var(--color-divider)' }}>
 
@@ -95,7 +96,7 @@ export function TraderSidebar() {
                             <TrendingUp size={13} style={{ color: 'var(--color-success)' }} />
                             <span className="text-[11px] font-bold uppercase tracking-widest"
                                   style={{ color: 'var(--color-text-secondary)' }}>
-                                Cours de change
+                                Taux salle
                             </span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -118,36 +119,8 @@ export function TraderSidebar() {
                             Chargement...
                         </div>
                     )}
-                    {rates?.rates.map((rate, i) => (
-                        <div key={rate.code}
-                             className="flex items-center px-3 py-2.5 transition-colors"
-                             style={{
-                                 borderBottom: '1px solid var(--color-border-subtle)',
-                                 background: i % 2 !== 0 ? 'var(--color-bg-tertiary)' : 'transparent',
-                             }}>
-                            <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                                <div className="flex-shrink-0 w-10 h-7 rounded overflow-hidden border flex items-center justify-center"
-                                     style={{
-                                         background: 'var(--color-bg-input)',
-                                         borderColor: 'var(--color-border-subtle)',
-                                     }}>
-                                    <FlagImg code={rate.code} emoji={rate.flag} />
-                                </div>
-                                <span className="text-[14px] font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                                    {rate.code}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="w-14 text-right font-mono-nums text-[13px] font-bold"
-                                      style={{ color: 'var(--color-success)' }}>
-                                    {rate.buy.toFixed(3)}
-                                </span>
-                                <span className="w-14 text-right font-mono-nums text-[13px] font-bold"
-                                      style={{ color: 'var(--color-danger)' }}>
-                                    {rate.sell.toFixed(3)}
-                                </span>
-                            </div>
-                        </div>
+                    {ratesData?.rates.map((rate, i) => (
+                        <EditableRateRow key={rate.code} rate={rate} index={i} />
                     ))}
                 </div>
             </div>
@@ -236,6 +209,174 @@ export function TraderSidebar() {
                     </div>
                 )}
             </div>
+        </div>
+    )
+}
+
+/* ─────────────────────────────────────────────────────────────────────── */
+/*       LIGNE DE TAUX ÉDITABLE — uniquement côté trader                   */
+/* ─────────────────────────────────────────────────────────────────────── */
+
+function EditableRateRow({ rate, index }: { rate: TraderRate; index: number }) {
+    const [editing, setEditing] = useState(false)
+    const [buy, setBuy]   = useState(String(rate.buy))
+    const [sell, setSell] = useState(String(rate.sell))
+
+    const update = useUpdateTraderRate()
+
+    /* Garde les inputs en sync si le taux change depuis le WS */
+    useEffect(() => {
+        if (!editing) {
+            setBuy(String(rate.buy))
+            setSell(String(rate.sell))
+        }
+    }, [rate.buy, rate.sell, editing])
+
+    const handleSave = () => {
+        const buyNum = parseFloat(buy)
+        const sellNum = parseFloat(sell)
+
+        if (isNaN(buyNum) || isNaN(sellNum) || buyNum <= 0 || sellNum <= 0) {
+            return
+        }
+        if (sellNum <= buyNum) {
+            return
+        }
+
+        update.mutate(
+            { code: rate.code, payload: { buy: buyNum, sell: sellNum } },
+            {
+                onSuccess: () => setEditing(false),
+            }
+        )
+    }
+
+    const handleCancel = () => {
+        setEditing(false)
+        setBuy(String(rate.buy))
+        setSell(String(rate.sell))
+    }
+
+    const buyNum  = parseFloat(buy)  || 0
+    const sellNum = parseFloat(sell) || 0
+    const isInvalid = editing && (sellNum <= buyNum || buyNum <= 0)
+
+    return (
+        <div
+            className="flex items-center px-3 py-2 transition-colors group"
+            style={{
+                borderBottom: '1px solid var(--color-border-subtle)',
+                background: editing
+                    ? 'var(--color-success-bg)'
+                    : index % 2 !== 0
+                        ? 'var(--color-bg-tertiary)'
+                        : 'transparent',
+            }}
+        >
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                <div className="flex-shrink-0 w-9 h-6 rounded overflow-hidden border flex items-center justify-center"
+                     style={{
+                         background: 'var(--color-bg-input)',
+                         borderColor: 'var(--color-border-subtle)',
+                     }}>
+                    <FlagImg code={rate.code} emoji={rate.flag} />
+                </div>
+                <span className="text-[13px] font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                    {rate.code}
+                </span>
+            </div>
+
+            {!editing ? (
+                <>
+                    <div className="flex items-center gap-2">
+                        <span className="w-12 text-right font-mono-nums text-[12px] font-bold"
+                              style={{ color: 'var(--color-success)' }}>
+                            {Number(rate.buy).toFixed(3)}
+                        </span>
+                        <span className="w-12 text-right font-mono-nums text-[12px] font-bold"
+                              style={{ color: 'var(--color-danger)' }}>
+                            {Number(rate.sell).toFixed(3)}
+                        </span>
+                    </div>
+                    <button
+                        onClick={() => setEditing(true)}
+                        title="Modifier"
+                        className="ml-1.5 w-6 h-6 rounded flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 active:scale-90"
+                        style={{
+                            background: 'var(--color-warning-bg)',
+                            border: '1px solid var(--color-warning-border)',
+                            color: 'var(--color-warning)',
+                        }}
+                    >
+                        <Edit2 size={10} />
+                    </button>
+                </>
+            ) : (
+                <div className="flex items-center gap-1">
+                    <input
+                        type="number"
+                        step="0.0001"
+                        value={buy}
+                        onChange={(e) => setBuy(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSave()
+                            if (e.key === 'Escape') handleCancel()
+                        }}
+                        autoFocus
+                        className="w-14 text-right px-1 py-0.5 font-mono-nums text-[11px] font-bold rounded focus:outline-none"
+                        style={{
+                            background: 'var(--color-bg-input)',
+                            border: `1px solid ${isInvalid ? 'var(--color-danger-border)' : 'var(--color-success-border)'}`,
+                            color: 'var(--color-success)',
+                            fontSize: '14px',
+                        }}
+                        inputMode="decimal"
+                    />
+                    <input
+                        type="number"
+                        step="0.0001"
+                        value={sell}
+                        onChange={(e) => setSell(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSave()
+                            if (e.key === 'Escape') handleCancel()
+                        }}
+                        className="w-14 text-right px-1 py-0.5 font-mono-nums text-[11px] font-bold rounded focus:outline-none"
+                        style={{
+                            background: 'var(--color-bg-input)',
+                            border: `1px solid ${isInvalid ? 'var(--color-danger-border)' : 'var(--color-danger-border)'}`,
+                            color: 'var(--color-danger)',
+                            fontSize: '14px',
+                        }}
+                        inputMode="decimal"
+                    />
+                    <button
+                        onClick={handleSave}
+                        disabled={isInvalid || update.isPending}
+                        title="Valider"
+                        className="ml-0.5 w-6 h-6 rounded flex items-center justify-center transition-all active:scale-90 disabled:opacity-30"
+                        style={{
+                            background: 'var(--color-success-bg)',
+                            border: '1px solid var(--color-success-border)',
+                            color: 'var(--color-success)',
+                        }}
+                    >
+                        <Check size={10} />
+                    </button>
+                    <button
+                        onClick={handleCancel}
+                        title="Annuler"
+                        className="w-6 h-6 rounded flex items-center justify-center transition-all active:scale-90"
+                        style={{
+                            background: 'var(--color-bg-input)',
+                            border: '1px solid var(--color-border-subtle)',
+                            color: 'var(--color-text-tertiary)',
+                        }}
+                    >
+                        <X size={10} />
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

@@ -17,27 +17,24 @@ export function useThreadTickets(threadId: number | null) {
     queryKey: ['tickets', threadId],
     queryFn:  () => ticketsApi.getThreadTickets(threadId!),
     enabled:  !!threadId,
-
-    // ✅ Refetch à chaque montage (ouverture de la conversation)
     refetchOnMount: 'always',
-
-    // staleTime: 0 → toujours périmé → refetch obligatoire au montage
     staleTime: 0,
-
-    // ❌ Plus de polling automatique 5s
     refetchInterval: false,
-
-    // Pas de refetch quand on revient sur l'onglet
     refetchOnWindowFocus: false,
   })
 }
 
+/**
+ * Création de ticket (TRADER).
+ * Pas d'invalidation manuelle : le broadcast WS 'ticket_created' s'en charge.
+ */
 export function useCreateTicket(threadId: number) {
   return useMutation({
     mutationFn: (payload: Parameters<typeof ticketsApi.createTicket>[1]) =>
         ticketsApi.createTicket(threadId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tickets', threadId] })
+      // Pas d'invalidation : le broadcast WS 'ticket_created' va invalider
+      // la query côté trader ET côté client en même temps.
       toast.success('Ticket proposé au client')
     },
     onError: (err: any) => {
@@ -47,24 +44,33 @@ export function useCreateTicket(threadId: number) {
   })
 }
 
+/**
+ * Acceptation de ticket (CLIENT).
+ * Pas d'invalidation manuelle : le broadcast WS 'ticket_accepted' s'en charge.
+ */
 export function useAcceptTicket() {
   return useMutation({
     mutationFn: ticketsApi.acceptTicket,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tickets'] })
       toast.success('Ticket accepté')
     },
     onError: () => toast.error("Erreur acceptation"),
   })
 }
 
+/**
+ * Refus de ticket (CLIENT).
+ * Pas d'invalidation manuelle : le broadcast WS 'ticket_declined' s'en charge.
+ */
 export function useDeclineTicket() {
   return useMutation({
     mutationFn: ticketsApi.declineTicket,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tickets'] })
       toast.success('Ticket refusé')
     },
     onError: () => toast.error("Erreur refus"),
   })
 }
+
+/* ─── Helper inutilisé importé pour éviter le warning lint si besoin ─── */
+void queryClient

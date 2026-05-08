@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { TrendingUp } from 'lucide-react'
-import { useAllRatesSidebar } from '@/hooks/useRates'
+import { TrendingUp, RefreshCw } from 'lucide-react'
+import { useTraderRates } from '@/hooks/useTraderRates'
 
 function FlagImg({ code, emoji }: { code: string; emoji: string | null }) {
     const [err, setErr] = useState(false)
@@ -31,9 +31,37 @@ function useLiveTime() {
     return time
 }
 
+/** Retourne "il y a X min/h/j" depuis un timestamp ISO */
+function useTimeAgo(iso: string | null): string {
+    const [label, setLabel] = useState('')
+
+    useEffect(() => {
+        if (!iso) {
+            setLabel('—')
+            return
+        }
+        const compute = () => {
+            const diff = Date.now() - new Date(iso).getTime()
+            const min = Math.floor(diff / 60_000)
+            if (min < 1)   return "à l'instant"
+            if (min < 60)  return `il y a ${min} min`
+            const h = Math.floor(min / 60)
+            if (h < 24)    return `il y a ${h}h`
+            const d = Math.floor(h / 24)
+            return `il y a ${d}j`
+        }
+        setLabel(compute())
+        const id = setInterval(() => setLabel(compute()), 30_000)
+        return () => clearInterval(id)
+    }, [iso])
+
+    return label
+}
+
 export function RateSidebar() {
-    const { data, isLoading } = useAllRatesSidebar()
+    const { data, isLoading } = useTraderRates()
     const liveTime = useLiveTime()
+    const timeAgo = useTimeAgo(data?.last_update ?? null)
 
     return (
         <div className="flex flex-col h-full overflow-hidden"
@@ -52,7 +80,7 @@ export function RateSidebar() {
                         <TrendingUp size={13} style={{ color: 'var(--color-success)' }} />
                         <span className="text-[11px] font-bold uppercase tracking-widest"
                               style={{ color: 'var(--color-text-secondary)' }}>
-                            Cours de change
+                            Nos taux
                         </span>
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -67,6 +95,15 @@ export function RateSidebar() {
                 <div className="text-[11px] font-mono-nums mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
                     {liveTime}
                 </div>
+                {/* ✅ Indicateur "mis à jour il y a X min" */}
+                {data?.last_update && (
+                    <div className="flex items-center gap-1 mt-1">
+                        <RefreshCw size={9} style={{ color: 'var(--color-text-tertiary)' }} />
+                        <span className="text-[10px]" style={{ color: 'var(--color-text-tertiary)' }}>
+                            Mis à jour {timeAgo}
+                        </span>
+                    </div>
+                )}
 
                 <div className="flex mt-2.5 text-[10px] uppercase tracking-wider font-semibold"
                      style={{ color: 'var(--color-text-tertiary)' }}>
@@ -106,11 +143,11 @@ export function RateSidebar() {
 
                         <div className="w-14 text-right font-mono-nums text-[13px] font-bold"
                              style={{ color: 'var(--color-success)' }}>
-                            {rate.buy.toFixed(3)}
+                            {Number(rate.buy).toFixed(3)}
                         </div>
                         <div className="w-14 text-right font-mono-nums text-[13px] font-bold ml-1"
                              style={{ color: 'var(--color-danger)' }}>
-                            {rate.sell.toFixed(3)}
+                            {Number(rate.sell).toFixed(3)}
                         </div>
                     </div>
                 ))}
