@@ -1,8 +1,16 @@
 export type MessageStatus = 'SENT' | 'DELIVERED' | 'READ'
 export type MessageType =
     | 'TEXT'
-    | 'TICKET_CREATED' | 'TICKET_ACCEPTED' | 'TICKET_DECLINED' | 'TICKET_EXPIRED'
-    | 'BRANCH_CONFIRMED' | 'BRANCH_COMPLETED'
+    | 'TICKET_CREATED'
+    | 'TICKET_ACCEPTED'
+    | 'TICKET_DECLINED'
+    | 'TICKET_EXPIRED'
+    | 'BRANCH_CONFIRMED'
+    | 'BRANCH_COMPLETED'
+    | 'TICKET_CREATED_BY_CLIENT'
+    | 'TICKET_ACCEPTED_BY_TRADER'
+    | 'TICKET_DECLINED_BY_TRADER'
+    | 'TICKET_COUNTERED'
 
 export interface Message {
   message_id:     number

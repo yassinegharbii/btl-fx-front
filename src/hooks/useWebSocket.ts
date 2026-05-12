@@ -4,9 +4,6 @@ import { useChatStore } from '@/stores/chat.store'
 import { queryClient }  from '@/lib/queryClient'
 import type { WsOutEvent } from '@/types/chat.types'
 
-/**
- * Events globaux qui ne sont liés à AUCUN thread spécifique.
- */
 const GLOBAL_EVENT_TYPES = new Set<string>([
   'trader_rates_updated',
 ])
@@ -203,13 +200,15 @@ export function useWebSocket(threadId: number | null) {
           break
         }
 
+          /* ─── Tous les events tickets : 1 seule invalidation ─── */
         case 'ticket_created':
         case 'ticket_accepted':
         case 'ticket_declined':
         case 'ticket_expired':
-          /* ✅ FIX : une seule invalidation. ['tickets', threadId] est match
-             par défaut par TanStack Query (préfixe), donc inutile d'avoir
-             les deux invalidations qui causaient un double GET. */
+        case 'ticket_created_by_client':
+        case 'ticket_accepted_by_trader':
+        case 'ticket_declined_by_trader':
+        case 'ticket_countered':
           queryClient.invalidateQueries({ queryKey: ['tickets', threadId] })
           break
 

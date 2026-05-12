@@ -6,6 +6,7 @@ interface BadgeConfig {
 }
 
 const STATUS_CONFIG: Record<OrderStatus, BadgeConfig> = {
+  /* ─── Existants ─── */
   PROPOSED:            { label: 'En attente',     semantic: 'warning' },
   ACCEPTED_BY_CLIENT:  { label: 'Accepté',        semantic: 'success' },
   DECLINED_BY_CLIENT:  { label: 'Refusé',         semantic: 'danger'  },
@@ -13,6 +14,12 @@ const STATUS_CONFIG: Record<OrderStatus, BadgeConfig> = {
   CONFIRMED_BY_BRANCH: { label: 'Pris en charge', semantic: 'info'    },
   COMPLETED:           { label: 'Finalisé',       semantic: 'success' },
   CANCELLED:           { label: 'Annulé',         semantic: 'danger'  },
+
+  /* ─── ✅ NEW : Workflow client-initiated ─── */
+  PROPOSED_BY_CLIENT:  { label: 'Demande client',     semantic: 'warning' },
+  COUNTERED_BY_TRADER: { label: 'Contre-proposition', semantic: 'info'    },
+  ACCEPTED_BY_TRADER:  { label: 'Accepté trader',     semantic: 'success' },
+  DECLINED_BY_TRADER:  { label: 'Refusé trader',      semantic: 'danger'  },
 }
 
 function getSemanticVars(semantic: BadgeConfig['semantic']) {

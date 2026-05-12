@@ -4,6 +4,7 @@ import {
     LogOut, Menu, BarChart3, Clock, CheckCircle2, XCircle,
     ClipboardCheck, Award, Hourglass, TrendingUp, TrendingDown,
     Users, Activity, RefreshCw, ArrowRight,
+    UserPlus, Repeat,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -307,7 +308,6 @@ function EvolutionChart({ data }: { data: { date: string; label: string; count: 
     const { theme } = useTheme()
     const isDark = theme === 'dark'
 
-    // Couleurs adaptées au thème pour le graphique recharts
     const colorTotal    = isDark ? '#4ade80' : '#16a34a'
     const colorAccepted = isDark ? '#fbbf24' : '#d97706'
     const gridColor     = isDark ? 'rgba(42, 128, 64, 0.2)' : 'rgba(42, 128, 64, 0.15)'
@@ -534,6 +534,7 @@ function TopClientsCard({ clients }: { clients: DashboardTopClient[] }) {
 }
 
 /* ─── RECENT ACTIVITY ─── */
+/* ✅ STATUS_CONFIG complété avec les 4 nouveaux statuts */
 const STATUS_CONFIG: Record<OrderStatus, { icon: LucideIcon; semantic: string; label: string }> = {
     PROPOSED:            { icon: Clock,          semantic: 'warning', label: 'Proposé' },
     ACCEPTED_BY_CLIENT:  { icon: CheckCircle2,   semantic: 'success', label: 'Accepté' },
@@ -542,6 +543,12 @@ const STATUS_CONFIG: Record<OrderStatus, { icon: LucideIcon; semantic: string; l
     COMPLETED:           { icon: Award,          semantic: 'success', label: 'Finalisé' },
     EXPIRED:             { icon: Hourglass,      semantic: 'neutral', label: 'Expiré' },
     CANCELLED:           { icon: XCircle,        semantic: 'danger',  label: 'Annulé' },
+
+    /* ─── ✅ NEW : workflow client-initiated ─── */
+    PROPOSED_BY_CLIENT:  { icon: UserPlus,       semantic: 'warning', label: 'Demande client' },
+    COUNTERED_BY_TRADER: { icon: Repeat,         semantic: 'info',    label: 'Contre-proposition' },
+    ACCEPTED_BY_TRADER:  { icon: CheckCircle2,   semantic: 'success', label: 'Accepté trader' },
+    DECLINED_BY_TRADER:  { icon: XCircle,        semantic: 'danger',  label: 'Refusé trader' },
 }
 
 function timeAgo(iso: string | null): string {

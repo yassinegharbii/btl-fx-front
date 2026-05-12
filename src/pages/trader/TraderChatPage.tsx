@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useWebSocket }     from '@/hooks/useWebSocket'
 import { useChatStore }     from '@/stores/chat.store'
 import { useUserById }      from '@/hooks/useUsers'
+import { useThreadTickets } from '@/hooks/useTickets'   // ✅ NEW
 import { chatApi }          from '@/api/chat.api'
 import { queryClient }      from '@/lib/queryClient'
 import { useIsMobile }      from '@/hooks/useIsMobile'
@@ -17,6 +18,7 @@ import { PresenceDot }         from '@/components/chat/PresenceDot'
 import { LastMessageStatus }   from '@/components/chat/LastMessageStatus'
 import { ConversationStats }   from '@/components/chat/ConversationStats'
 import { TicketForm }          from '@/components/ticket/TicketForm'
+import { TraderTicketPopup }   from '@/components/ticket/TraderTicketPopup'  // ✅ NEW
 import { Avatar }              from '@/components/ui/Avatar'
 import { Button }              from '@/components/ui/Button'
 import { MobileDrawer }        from '@/components/ui/MobileDrawer'
@@ -54,6 +56,14 @@ export default function TraderChatPage() {
 
   const clientId = thread?.client_id ?? null
   const { data: client } = useUserById(clientId)
+
+  /* ─── ✅ Récupère les tickets pour détecter les demandes client ─── */
+  const { data: tickets } = useThreadTickets(threadId)
+
+  /* ─── ✅ Le trader voit la popup pour PROPOSED_BY_CLIENT ─── */
+  const pendingClientTicket = tickets?.find((t) =>
+      t.order_status === 'PROPOSED_BY_CLIENT'
+  )
 
   const displayName = client?.full_name ?? client?.username ?? (clientId ? `Client #${clientId}` : 'Client')
   const isClientTyping = clientId ? typing[clientId] : false
@@ -117,7 +127,6 @@ export default function TraderChatPage() {
                  borderColor: 'var(--color-border)',
                }}>
 
-            {/* Hamburger sur mobile */}
             {isMobile && (
                 <button
                     onClick={() => setShowSidebar(true)}
@@ -133,7 +142,6 @@ export default function TraderChatPage() {
                 </button>
             )}
 
-            {/* Bouton Accueil */}
             <button
                 onClick={() => navigate('/trader')}
                 title="Retour au tableau de bord"
@@ -204,7 +212,6 @@ export default function TraderChatPage() {
             </div>
           </div>
 
-          {/* STATS PANEL */}
           {threadId && <ConversationStats threadId={threadId} />}
 
           {/* MESSAGES */}
@@ -258,6 +265,11 @@ export default function TraderChatPage() {
 
         {showForm && threadId && (
             <TicketForm threadId={threadId} onClose={() => setShowForm(false)} />
+        )}
+
+        {/* ─── ✅ Popup quand le client a créé un ticket ─── */}
+        {pendingClientTicket && (
+            <TraderTicketPopup ticket={pendingClientTicket} />
         )}
       </div>
   )

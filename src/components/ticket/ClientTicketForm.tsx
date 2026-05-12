@@ -1,15 +1,15 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { X, Plus, Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { X, ArrowDownRight, Plus, Minus, Info } from 'lucide-react'
 
-import { api }              from '@/lib/axios'
-import { useCreateTicket }  from '@/hooks/useTickets'
-import { useTraderRates }   from '@/hooks/useTraderRates'    // ✅ NEW
-import { Button }           from '@/components/ui/Button'
-import { useIsMobile }      from '@/hooks/useIsMobile'
+import { api }                   from '@/lib/axios'
+import { useClientCreateTicket } from '@/hooks/useTickets'
+import { useTraderRates }        from '@/hooks/useTraderRates'
+import { Button }                from '@/components/ui/Button'
+import { useIsMobile }           from '@/hooks/useIsMobile'
 
 import type {
-    TicketCreatePayload, Operation,
+    TicketCreateByClientPayload,
 } from '@/types/ticket.types'
 
 interface Props {
@@ -32,31 +32,23 @@ const CURRENCIES_STATIC = [
     { currency_id: 12, code: 'BHD', label: 'Dinar Bahreïni' },
 ]
 
-const QUICK_VALIDITY = [
-    { label: '15 min', value: 15 },
-    { label: '30 min', value: 30 },
-]
-
-const VALIDITY_MIN = 5
-const VALIDITY_MAX = 30
-const DELIVERY_MODE_CASH = 'CASH' as const
-
-export function TicketForm({ threadId, onClose }: Props) {
-    const create   = useCreateTicket(threadId)
+export function ClientTicketForm({ threadId, onClose }: Props) {
+    const create   = useClientCreateTicket(threadId)
     const isMobile = useIsMobile()
 
-    /* ✅ Hook taux trader */
     const { data: ratesData } = useTraderRates()
 
     const [currencyId, setCurrencyId] = useState<number>(0)
-    const [operation,  setOperation]  = useState<Operation>('BUY')
     const [amount,     setAmount]     = useState('')
     const [branchCode, setBranchCode] = useState('')
-    const [validity,   setValidity]   = useState<number>(15)
     const [comment,    setComment]    = useState('')
 
-    /* ✅ userPrice = saisie manuelle du trader, null = afficher suggestion */
     const [userPrice, setUserPrice] = useState<string | null>(null)
+
+    /* ✅ Le client veut VENDRE des devises (perspective client).
+       En BDD ça correspond à BUY (le trader achète au client).
+       Convention bancaire : la BDD stocke toujours la perspective trader. */
+    const OPERATION_FOR_BACKEND = 'BUY' as const
 
     useEffect(() => {
         const original = document.body.style.overflow
@@ -75,18 +67,16 @@ export function TicketForm({ threadId, onClose }: Props) {
         [currencyId]
     )
 
-    /* ─── ✅ Taux suggéré auto depuis trader rates ─── */
+    /* ─── Taux suggéré : le client veut vendre, donc utiliser le BUY trader
+           (prix auquel le trader achète) ─── */
     const suggestedPrice = useMemo<string>(() => {
         if (!selectedCurrency || !ratesData) return ''
 
         const rate = ratesData.rates.find((r) => r.code === selectedCurrency.code)
         if (!rate) return ''
 
-        // BUY (le trader achète au client) → utiliser BUY rate
-        // SELL (le trader vend au client) → utiliser SELL rate
-        const autoPrice = operation === 'BUY' ? rate.buy : rate.sell
-        return String(autoPrice)
-    }, [selectedCurrency, ratesData, operation])
+        return String(rate.buy)
+    }, [selectedCurrency, ratesData])
 
     const price = userPrice ?? suggestedPrice
     const priceTouched = userPrice !== null
@@ -98,38 +88,28 @@ export function TicketForm({ threadId, onClose }: Props) {
         return amountNum && p ? (amountNum * p).toFixed(3) : '—'
     }, [amountNum, price])
 
-    /* Reset auto-fill quand devise ou opération change */
-    const handleCurrencyChange = (newId: number) => {
-        setCurrencyId(newId)
-        setUserPrice(null)
-    }
-    const handleOperationChange = (op: Operation) => {
-        setOperation(op)
-        setUserPrice(null)
-    }
-
     const canSubmit =
         currencyId > 0 &&
         amountNum > 0 &&
         parseFloat(price) > 0 &&
-        branchCode !== '' &&
-        validity >= VALIDITY_MIN &&
-        validity <= VALIDITY_MAX
+        branchCode !== ''
 
     const handleSubmit = () => {
         if (!canSubmit) return
-        const payload: TicketCreatePayload = {
+        const payload: TicketCreateByClientPayload = {
             currency_id:      currencyId,
-            operation,
+            operation:        OPERATION_FOR_BACKEND,  // ✅ envoie BUY (perspective trader)
             order_amount:     amountNum,
-            delivery_mode:    DELIVERY_MODE_CASH,
             branch_code:      branchCode,
             negotiated_price: parseFloat(price),
-            validity_min:     validity,
-            trader_comment:   comment || null,
-            bills:            [],
+            client_comment:   comment || null,
         }
         create.mutate(payload, { onSuccess: onClose })
+    }
+
+    const handleCurrencyChange = (newId: number) => {
+        setCurrencyId(newId)
+        setUserPrice(null)
     }
 
     const containerStyle: React.CSSProperties = isMobile
@@ -165,7 +145,6 @@ export function TicketForm({ threadId, onClose }: Props) {
         <div style={containerStyle}>
             <div style={cardStyle}>
 
-                {/* HEADER */}
                 <div
                     className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b flex-shrink-0"
                     style={{
@@ -176,10 +155,10 @@ export function TicketForm({ threadId, onClose }: Props) {
                 >
                     <div className="min-w-0 flex-1">
                         <h2 className="text-base font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                            Nouveau ticket
+                            Vendre des devises
                         </h2>
                         <p className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--color-text-secondary)' }}>
-                            Proposition de taux négocié
+                            Votre trader vous répondra rapidement
                         </p>
                     </div>
                     <button
@@ -199,36 +178,41 @@ export function TicketForm({ threadId, onClose }: Props) {
                 {/* BODY */}
                 <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
 
-                    <Field label="Opération">
-                        <div className="grid grid-cols-2 gap-2.5">
-                            {(['BUY', 'SELL'] as Operation[]).map((op) => {
-                                const isActive = operation === op
-                                const isBuy = op === 'BUY'
-                                const Icon = isBuy ? ArrowUpRight : ArrowDownRight
-                                const semantic = isBuy ? 'success' : 'danger'
-
-                                return (
-                                    <button
-                                        key={op}
-                                        type="button"
-                                        onClick={() => handleOperationChange(op)}
-                                        className="py-3.5 rounded-xl text-sm font-semibold border transition-all active:scale-95 flex items-center justify-center gap-2"
-                                        style={{
-                                            background: isActive ? `var(--color-${semantic}-bg)` : 'var(--color-bg-input)',
-                                            borderColor: isActive ? `var(--color-${semantic}-border)` : 'var(--color-border-subtle)',
-                                            color: isActive ? `var(--color-${semantic})` : 'var(--color-text-tertiary)',
-                                            minHeight: 48,
-                                        }}
-                                    >
-                                        <Icon size={16} />
-                                        {op === 'BUY' ? 'Achat' : 'Vente'}
-                                    </button>
-                                )
-                            })}
+                    <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-semibold mb-1.5"
+                               style={{ color: 'var(--color-text-secondary)' }}>
+                            Opération
+                        </label>
+                        <div
+                            className="py-3.5 rounded-xl text-sm font-semibold border flex items-center justify-center gap-2"
+                            style={{
+                                background: 'var(--color-danger-bg)',
+                                borderColor: 'var(--color-danger-border)',
+                                color: 'var(--color-danger)',
+                                minHeight: 48,
+                            }}
+                        >
+                            <ArrowDownRight size={16} />
+                            Vente de devises
                         </div>
-                    </Field>
+                    </div>
 
-                    <Field label="Devise">
+                    <div
+                        className="px-3 py-2.5 rounded-xl text-[11px] flex items-start gap-2"
+                        style={{
+                            background: 'var(--color-info-bg)',
+                            border: '1px solid var(--color-info-border)',
+                            color: 'var(--color-info)',
+                        }}
+                    >
+                        <Info size={14} className="flex-shrink-0 mt-0.5" />
+                        <span>
+                            <strong>Pour acheter des devises :</strong> contactez directement votre trader
+                            via la messagerie. Il étudiera votre demande et reviendra vers vous avec une proposition adaptée.
+                        </span>
+                    </div>
+
+                    <Field label="Devise à vendre">
                         <Select value={String(currencyId)} onChange={(v) => handleCurrencyChange(Number(v))}>
                             <option value="0">— Sélectionner —</option>
                             {CURRENCIES_STATIC.map((c) => (
@@ -250,7 +234,7 @@ export function TicketForm({ threadId, onClose }: Props) {
                                 inputMode="decimal"
                             />
                         </Field>
-                        <Field label="Taux négocié (TND)">
+                        <Field label="Taux proposé (TND)">
                             <NumberInput
                                 value={price}
                                 onChange={(v) => setUserPrice(v)}
@@ -259,12 +243,11 @@ export function TicketForm({ threadId, onClose }: Props) {
                                 min={0}
                                 inputMode="decimal"
                             />
-                            {/* ✅ Indicateur taux auto-rempli */}
                             {selectedCurrency && suggestedPrice && (
                                 <div className="text-[10px] mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
                                     {priceTouched
-                                        ? `✏️ Taux modifié (taux salle: ${suggestedPrice})`
-                                        : '✓ Taux salle actuel (modifiable)'}
+                                        ? `✏️ Taux modifié (taux trader: ${suggestedPrice})`
+                                        : '✓ Taux trader actuel (modifiable)'}
                                 </div>
                             )}
                         </Field>
@@ -280,7 +263,7 @@ export function TicketForm({ threadId, onClose }: Props) {
                         >
                             <div className="text-[10px] uppercase tracking-widest font-semibold"
                                  style={{ color: 'var(--color-text-secondary)' }}>
-                                Équivalent TND
+                                Vous recevrez
                             </div>
                             <div className="font-mono-nums text-2xl font-bold mt-0.5"
                                  style={{ color: 'var(--color-text-primary)' }}>
@@ -303,59 +286,27 @@ export function TicketForm({ threadId, onClose }: Props) {
                         </Select>
                     </Field>
 
-                    <Field label="Validité du ticket">
-                        <div className="grid grid-cols-2 gap-2">
-                            {QUICK_VALIDITY.map((opt) => {
-                                const active = validity === opt.value
-                                return (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        onClick={() => setValidity(opt.value)}
-                                        className="py-3 rounded-lg text-sm font-medium border transition-all active:scale-95"
-                                        style={{
-                                            background: active
-                                                ? 'var(--color-success-bg)'
-                                                : 'var(--color-bg-input)',
-                                            borderColor: active
-                                                ? 'var(--color-success-border)'
-                                                : 'var(--color-border-subtle)',
-                                            color: active
-                                                ? 'var(--color-success)'
-                                                : 'var(--color-text-tertiary)',
-                                            minHeight: 44,
-                                        }}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                )
-                            })}
-                        </div>
-                        <div className="mt-2 flex items-center gap-2">
-                            <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--color-text-tertiary)' }}>
-                                ou minutes (max {VALIDITY_MAX}) :
-                            </span>
-                            <div className="flex-1 max-w-[180px]">
-                                <NumberInput
-                                    value={String(validity)}
-                                    onChange={(v) => {
-                                        const num = Number(v) || VALIDITY_MIN
-                                        setValidity(Math.max(VALIDITY_MIN, Math.min(VALIDITY_MAX, num)))
-                                    }}
-                                    step="5"
-                                    min={VALIDITY_MIN}
-                                    inputMode="numeric"
-                                />
-                            </div>
-                        </div>
-                    </Field>
+                    <div
+                        className="px-3 py-2 rounded-xl text-[11px] flex items-start gap-2"
+                        style={{
+                            background: 'var(--color-bg-tertiary)',
+                            border: '1px solid var(--color-border-subtle)',
+                            color: 'var(--color-text-secondary)',
+                        }}
+                    >
+                        <span className="text-sm">ℹ️</span>
+                        <span>
+                            Le trader définira la durée de validité du ticket lors de son acceptation
+                            ou de sa contre-proposition.
+                        </span>
+                    </div>
 
                     <Field label="Commentaire (optionnel)">
                         <textarea
                             rows={3}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
-                            placeholder="Message pour le client..."
+                            placeholder="Précisez votre demande..."
                             className="w-full px-3 py-2.5 rounded-xl resize-none focus:outline-none transition-colors"
                             style={{
                                 background: 'var(--color-bg-input)',
@@ -387,7 +338,7 @@ export function TicketForm({ threadId, onClose }: Props) {
                         onClick={handleSubmit}
                         style={{ minHeight: 48 }}
                     >
-                        Proposer le ticket
+                        Envoyer la proposition
                     </Button>
                 </div>
             </div>
@@ -395,7 +346,7 @@ export function TicketForm({ threadId, onClose }: Props) {
     )
 }
 
-export default TicketForm
+export default ClientTicketForm
 
 /* ─── FIELD ─── */
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

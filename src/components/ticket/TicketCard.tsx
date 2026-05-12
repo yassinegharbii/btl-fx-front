@@ -1,5 +1,6 @@
 import { useThreadTickets, useAcceptTicket, useDeclineTicket } from '@/hooks/useTickets'
 import { useAuthStore } from '@/stores/auth.store'
+import { getOperationLabel, getOperationSemantic } from '@/utils/operationLabels'  // ✅ NEW
 import { TicketBadge } from './TicketBadge'
 import { ExpiryBar } from './ExpiryBar'
 import { Button } from '@/components/ui/Button'
@@ -7,6 +8,14 @@ import { Spinner } from '@/components/ui/Spinner'
 import type { Ticket } from '@/types/ticket.types'
 
 interface Props { threadId: number }
+
+const ACTIVE_STATUSES = [
+    'PROPOSED',
+    'PROPOSED_BY_CLIENT',
+    'COUNTERED_BY_TRADER',
+    'ACCEPTED_BY_CLIENT',
+    'ACCEPTED_BY_TRADER',
+] as const
 
 export function TicketCard({ threadId }: Props) {
     const { data: tickets, isLoading } = useThreadTickets(threadId)
@@ -18,24 +27,44 @@ export function TicketCard({ threadId }: Props) {
         </div>
     )
 
-    const active = tickets?.find(
-        (t) => t.order_status === 'PROPOSED' || t.order_status === 'ACCEPTED_BY_CLIENT'
+    const active = tickets?.find((t) =>
+        ACTIVE_STATUSES.includes(t.order_status as typeof ACTIVE_STATUSES[number])
     )
 
     if (!active) return null
 
     return (
         <div className="my-2 flex justify-start px-2 sm:px-0">
-            <TicketCardInner ticket={active} isClient={user?.role === 'CLIENT'} />
+            <TicketCardInner ticket={active} userRole={user?.role} />
         </div>
     )
 }
 
-function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boolean }) {
+function TicketCardInner({ ticket, userRole }: { ticket: Ticket; userRole?: string }) {
     const accept  = useAcceptTicket()
     const decline = useDeclineTicket()
 
-    const isProposed = ticket.order_status === 'PROPOSED'
+    const isClient = userRole === 'CLIENT'
+
+    const canClientAct =
+        isClient && (
+            ticket.order_status === 'PROPOSED' ||
+            ticket.order_status === 'COUNTERED_BY_TRADER'
+        )
+
+    const showExpiryBar = ticket.valid_until && (
+        ticket.order_status === 'PROPOSED' ||
+        ticket.order_status === 'COUNTERED_BY_TRADER'
+    )
+
+    /* ✅ Label inversé selon perspective */
+    const opLabel    = getOperationLabel(ticket.operation, userRole as 'CLIENT' | 'TRADER' | undefined)
+    const opSemantic = getOperationSemantic(ticket.operation, userRole as 'CLIENT' | 'TRADER' | undefined)
+
+    /* Label en haut selon le créateur (perspective viewer) */
+    const createdByLabel = ticket.created_by_role === 'CLIENT'
+        ? (isClient ? 'Ma demande' : 'Demande client')
+        : (isClient ? 'Proposition trader' : 'Ma proposition')
 
     return (
         <div className="w-full sm:w-72 rounded-2xl p-3 sm:p-4 space-y-3"
@@ -45,24 +74,29 @@ function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boole
              }}>
             {/* Header */}
             <div className="flex items-center justify-between">
-                <span className="font-mono-nums text-[11px] tracking-wide"
-                      style={{ color: 'var(--color-text-tertiary)' }}>
-                    {ticket.ref_ticket}
-                </span>
+                <div className="flex flex-col">
+                    <span className="font-mono-nums text-[11px] tracking-wide"
+                          style={{ color: 'var(--color-text-tertiary)' }}>
+                        {ticket.ref_ticket}
+                    </span>
+                    <span className="text-[9px] uppercase tracking-wider mt-0.5"
+                          style={{ color: 'var(--color-text-tertiary)' }}>
+                        {createdByLabel}
+                    </span>
+                </div>
                 <TicketBadge status={ticket.order_status} />
             </div>
 
             {/* Infos */}
             <div className="space-y-1.5">
                 <TicketRow label="Opération" value={
-                    <span style={{ color: ticket.operation === 'BUY' ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                        {ticket.operation === 'BUY' ? 'Achat' : 'Vente'} {ticket.currency_code}
+                    <span style={{ color: `var(--color-${opSemantic})` }}>
+                        {opLabel} {ticket.currency_code}
                     </span>
                 } />
                 <TicketRow label="Montant"
                            value={`${ticket.order_amount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} ${ticket.currency_code}`}
                 />
-                <TicketRow label="Mode" value={ticket.delivery_mode} />
                 <TicketRow label="Agence" value={ticket.branch_name ?? ticket.branch_code} />
             </div>
 
@@ -74,7 +108,7 @@ function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boole
                  }}>
                 <div className="text-[10px] uppercase tracking-widest mb-1"
                      style={{ color: 'var(--color-text-tertiary)' }}>
-                    Taux négocié
+                    {ticket.order_status === 'COUNTERED_BY_TRADER' ? 'Nouveau taux' : 'Taux négocié'}
                 </div>
                 <div className="font-mono-nums text-2xl font-semibold"
                      style={{ color: 'var(--color-text-primary)' }}>
@@ -91,22 +125,39 @@ function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boole
                 )}
             </div>
 
-            {/* Commentaire trader */}
+            {/* Commentaire client (si présent) */}
+            {ticket.client_comment && (
+                <p className="text-xs italic border-l-2 pl-2"
+                   style={{
+                       color: 'var(--color-text-secondary)',
+                       borderColor: 'var(--color-warning)',
+                   }}>
+                    <span className="text-[10px] uppercase tracking-wider not-italic block mb-0.5 font-semibold"
+                          style={{ color: 'var(--color-warning)' }}>
+                        Client
+                    </span>
+                    {ticket.client_comment}
+                </p>
+            )}
+
+            {/* Commentaire trader (si présent) */}
             {ticket.trader_comment && (
                 <p className="text-xs italic border-l-2 pl-2"
                    style={{
                        color: 'var(--color-text-secondary)',
-                       borderColor: 'var(--color-border)',
+                       borderColor: 'var(--color-accent-secondary)',
                    }}>
+                    <span className="text-[10px] uppercase tracking-wider not-italic block mb-0.5 font-semibold"
+                          style={{ color: 'var(--color-accent-secondary)' }}>
+                        Trader
+                    </span>
                     {ticket.trader_comment}
                 </p>
             )}
 
-            {/* Barre d'expiration */}
-            {isProposed && <ExpiryBar validUntil={ticket.valid_until} createdAt={ticket.created_at} />}
+            {showExpiryBar && <ExpiryBar validUntil={ticket.valid_until} createdAt={ticket.created_at} />}
 
-            {/* Actions client */}
-            {isClient && isProposed && (
+            {canClientAct && (
                 <div className="flex gap-2 pt-1">
                     <Button
                         variant="success"
@@ -126,6 +177,13 @@ function TicketCardInner({ ticket, isClient }: { ticket: Ticket; isClient: boole
                     >
                         Refuser
                     </Button>
+                </div>
+            )}
+
+            {isClient && ticket.order_status === 'PROPOSED_BY_CLIENT' && (
+                <div className="text-center py-2 text-[11px]"
+                     style={{ color: 'var(--color-text-tertiary)' }}>
+                    ⏳ En attente de réponse du trader...
                 </div>
             )}
         </div>

@@ -1,4 +1,4 @@
-import { CheckCheck, Check, FileText, X, Clock, Building2 } from 'lucide-react'
+import { CheckCheck, Check, FileText, X, Clock, Building2, UserPlus, RefreshCw } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import type { Message, MessageType } from '@/types/chat.types'
@@ -7,6 +7,7 @@ interface Props {
     message: Message
 }
 
+/* ─── Liste des types système (incluant les nouveaux) ─── */
 const SYSTEM_TYPES: MessageType[] = [
     'TICKET_CREATED',
     'TICKET_ACCEPTED',
@@ -14,22 +15,33 @@ const SYSTEM_TYPES: MessageType[] = [
     'TICKET_EXPIRED',
     'BRANCH_CONFIRMED',
     'BRANCH_COMPLETED',
-]
+    /* ✅ NEW : workflow client-initiated */
+    'TICKET_CREATED_BY_CLIENT',
+    'TICKET_ACCEPTED_BY_TRADER',
+    'TICKET_DECLINED_BY_TRADER',
+    'TICKET_COUNTERED',
+] as MessageType[]
 
 interface SystemConfigItem {
     icon:     LucideIcon
     label:    string
-    /** Variable CSS du token couleur sémantique */
     semantic: 'success' | 'danger' | 'warning' | 'info' | 'neutral' | 'accent'
 }
 
 const SYSTEM_CONFIG: Record<string, SystemConfigItem> = {
+    /* ─── Existants ─── */
     TICKET_CREATED:    { icon: FileText,   label: 'Ticket proposé',  semantic: 'accent'  },
     TICKET_ACCEPTED:   { icon: CheckCheck, label: 'Ticket accepté',  semantic: 'success' },
     TICKET_DECLINED:   { icon: X,          label: 'Ticket refusé',   semantic: 'danger'  },
     TICKET_EXPIRED:    { icon: Clock,      label: 'Ticket expiré',   semantic: 'neutral' },
     BRANCH_CONFIRMED:  { icon: Building2,  label: 'Pris en charge',  semantic: 'info'    },
     BRANCH_COMPLETED:  { icon: CheckCheck, label: 'Finalisé',        semantic: 'success' },
+
+    /* ─── ✅ NEW : workflow client-initiated ─── */
+    TICKET_CREATED_BY_CLIENT:   { icon: UserPlus,   label: 'Demande client',         semantic: 'warning' },
+    TICKET_ACCEPTED_BY_TRADER:  { icon: CheckCheck, label: 'Accepté par le trader',  semantic: 'success' },
+    TICKET_DECLINED_BY_TRADER:  { icon: X,          label: 'Refusé par le trader',   semantic: 'danger'  },
+    TICKET_COUNTERED:           { icon: RefreshCw,  label: 'Contre-proposition',     semantic: 'info'    },
 }
 
 /** Mapping semantic → variables CSS */
@@ -63,9 +75,9 @@ export function MessageBubble({ message }: Props) {
     const currentUserId = useAuthStore((s) => s.user?.user_id)
     const isMine = message.sender_user_id === currentUserId
 
-    /* ─── Message système (ticket, branche, etc.) ─────────────────────── */
+    /* ─── Message système ─── */
     if (SYSTEM_TYPES.includes(message.message_type)) {
-        const config = SYSTEM_CONFIG[message.message_type]
+        const config = SYSTEM_CONFIG[message.message_type] ?? SYSTEM_CONFIG.TICKET_CREATED
         const ref = extractRefFromContent(message.content)
         const Icon = config.icon
         const vars = getSemanticVars(config.semantic)
@@ -102,7 +114,7 @@ export function MessageBubble({ message }: Props) {
         )
     }
 
-    /* ─── Message texte normal ──────────────────────────────────────── */
+    /* ─── Message texte normal ─── */
     return (
         <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} my-1`}>
             <div className="max-w-[85%] sm:max-w-[70%] flex flex-col">

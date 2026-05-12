@@ -1,33 +1,58 @@
 import { api } from '@/lib/axios'
-import type { Ticket, TicketCreatePayload } from '@/types/ticket.types'
+import type {
+  Ticket,
+  TicketCreatePayload,
+  TicketCreateByClientPayload,
+  TicketTraderAcceptPayload,
+  TicketTraderCounterPayload,
+} from '@/types/ticket.types'
 import type { DashboardPeriod, DashboardStats } from '@/types/dashboard.types'
 
 export const ticketsApi = {
+  /* ─── Lecture ─── */
   getThreadTickets: (threadId: number) =>
-    api.get<Ticket[]>(`/tickets/threads/${threadId}`).then((r) => r.data),
+      api.get<Ticket[]>(`/tickets/threads/${threadId}`).then((r) => r.data),
 
+  /* ─── Création par TRADER (existant) ─── */
   createTicket: (threadId: number, payload: TicketCreatePayload) =>
-    api.post<Ticket>(`/tickets/threads/${threadId}`, payload).then((r) => r.data),
+      api.post<Ticket>(`/tickets/threads/${threadId}`, payload).then((r) => r.data),
 
+  /* ─── ✅ NEW : Création par CLIENT ─── */
+  clientCreateTicket: (threadId: number, payload: TicketCreateByClientPayload) =>
+      api.post<Ticket>(`/tickets/threads/${threadId}/client`, payload).then((r) => r.data),
+
+  /* ─── Client accepte / refuse (existant) ─── */
   acceptTicket: (orderId: number) =>
-    api.post<Ticket>(`/tickets/${orderId}/accept`).then((r) => r.data),
+      api.post<Ticket>(`/tickets/${orderId}/accept`).then((r) => r.data),
 
   declineTicket: (orderId: number) =>
-    api.post<Ticket>(`/tickets/${orderId}/decline`).then((r) => r.data),
+      api.post<Ticket>(`/tickets/${orderId}/decline`).then((r) => r.data),
 
-  // ✅ NOUVEAU — Dashboard trader
+  /* ─── ✅ NEW : Trader accepte ticket client (avec validity) ─── */
+  traderAcceptClientTicket: (orderId: number, payload: TicketTraderAcceptPayload) =>
+      api.post<Ticket>(`/tickets/${orderId}/trader-accept`, payload).then((r) => r.data),
+
+  /* ─── ✅ NEW : Trader refuse ticket client ─── */
+  traderDeclineClientTicket: (orderId: number) =>
+      api.post<Ticket>(`/tickets/${orderId}/trader-decline`).then((r) => r.data),
+
+  /* ─── ✅ NEW : Trader contre ticket client ─── */
+  traderCounterTicket: (orderId: number, payload: TicketTraderCounterPayload) =>
+      api.post<Ticket>(`/tickets/${orderId}/counter`, payload).then((r) => r.data),
+
+  /* ─── Dashboard trader ─── */
   getDashboard: (period: DashboardPeriod = 'all') =>
-    api
-      .get<DashboardStats>('/tickets/dashboard', { params: { period } })
-      .then((r) => r.data),
+      api
+          .get<DashboardStats>('/tickets/dashboard', { params: { period } })
+          .then((r) => r.data),
 
-  // Agence
+  /* ─── Agence ─── */
   getByRef: (refTicket: string) =>
-    api.get(`/branch/orders/${refTicket}`).then((r) => r.data),
+      api.get(`/branch/orders/${refTicket}`).then((r) => r.data),
 
   confirmProcessing: (refTicket: string, note?: string) =>
-    api.post(`/branch/orders/${refTicket}/confirm-processing`, { note }).then((r) => r.data),
+      api.post(`/branch/orders/${refTicket}/confirm-processing`, { note }).then((r) => r.data),
 
   confirmCompleted: (refTicket: string, note?: string) =>
-    api.post(`/branch/orders/${refTicket}/confirm-completed`, { note }).then((r) => r.data),
+      api.post(`/branch/orders/${refTicket}/confirm-completed`, { note }).then((r) => r.data),
 }

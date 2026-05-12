@@ -1,14 +1,20 @@
+/* ─── Statuts complets (incluant nouveaux statuts client-initiated) ─── */
 export type OrderStatus =
-  | 'PROPOSED'
-  | 'ACCEPTED_BY_CLIENT'
-  | 'DECLINED_BY_CLIENT'
-  | 'EXPIRED'
-  | 'CONFIRMED_BY_BRANCH'
-  | 'COMPLETED'
-  | 'CANCELLED'
+    | 'PROPOSED'
+    | 'PROPOSED_BY_CLIENT'        // ✅ NEW : créé par client
+    | 'COUNTERED_BY_TRADER'       // ✅ NEW : trader a contré
+    | 'ACCEPTED_BY_CLIENT'
+    | 'ACCEPTED_BY_TRADER'        // ✅ NEW : trader accepte ticket client
+    | 'DECLINED_BY_CLIENT'
+    | 'DECLINED_BY_TRADER'        // ✅ NEW : trader refuse ticket client
+    | 'EXPIRED'
+    | 'CONFIRMED_BY_BRANCH'
+    | 'COMPLETED'
+    | 'CANCELLED'
 
-export type Operation    = 'BUY' | 'SELL'
-export type DeliveryMode = 'CASH' | 'ACCOUNT' | 'TRANSFER' | 'CHEQUE' | 'BORDEREAU'
+export type Operation       = 'BUY' | 'SELL'
+export type DeliveryMode    = 'CASH' | 'ACCOUNT' | 'TRANSFER' | 'CHEQUE' | 'BORDEREAU'
+export type CreatedByRole   = 'TRADER' | 'CLIENT'
 
 export interface TicketBill {
   id:         number
@@ -22,7 +28,11 @@ export interface Ticket {
   ref_ticket:            string
   thread_id:             number
   client_id:             number
-  proposed_by_trader_id: number
+
+  /* ✅ Nouveaux champs */
+  created_by_user_id:    number
+  created_by_role:       CreatedByRole
+
   currency_id:           number
   currency_code:         string | null
   currency_label:        string | null
@@ -38,6 +48,8 @@ export interface Ticket {
   negotiated_price:      number | null
   tnd_equivalent:        number | null
   trader_comment:        string | null
+  client_comment:        string | null      // ✅ NEW
+  branch_comment:        string | null
   valid_until:           string | null
   client_decision_at:    string | null
   branch_confirmed_at:   string | null
@@ -46,6 +58,7 @@ export interface Ticket {
   updated_at:            string
 }
 
+/* ─── Création par TRADER (existant) ─────────────────────────────────── */
 export interface TicketCreatePayload {
   currency_id:    number
   operation:      Operation
@@ -56,4 +69,27 @@ export interface TicketCreatePayload {
   validity_min:   number
   trader_comment: string | null
   bills:          { bill_value: string; quantity: number }[]
+}
+
+/* ─── ✅ NEW : Création par CLIENT ────────────────────────────────────── */
+export interface TicketCreateByClientPayload {
+  currency_id:      number
+  operation:        Operation
+  order_amount:     number
+  branch_code:      string
+  negotiated_price: number
+  client_comment:   string | null
+}
+
+/* ─── ✅ NEW : Trader accepte ticket client ──────────────────────────── */
+export interface TicketTraderAcceptPayload {
+  validity_min:   number       // 5-30 minutes
+  trader_comment: string | null
+}
+
+/* ─── ✅ NEW : Trader contre ticket client ───────────────────────────── */
+export interface TicketTraderCounterPayload {
+  negotiated_price: number
+  validity_min:     number
+  trader_comment:   string | null
 }

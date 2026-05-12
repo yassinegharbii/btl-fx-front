@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { LogOut, TrendingUp } from 'lucide-react'
+import { LogOut, TrendingUp, Plus } from 'lucide-react'
 
 import { useMyThread }      from '@/hooks/useThread'
 import { useWebSocket }     from '@/hooks/useWebSocket'
@@ -15,6 +15,7 @@ import { PresenceDot }       from '@/components/chat/PresenceDot'
 import { LastMessageStatus } from '@/components/chat/LastMessageStatus'
 import { RateSidebar }       from '@/components/rates/RateSidebar'
 import { TicketPopup }       from '@/components/ticket/TicketPopup'
+import { ClientTicketForm }  from '@/components/ticket/ClientTicketForm'  // ✅ NEW
 import { Spinner }           from '@/components/ui/Spinner'
 import { MobileDrawer }      from '@/components/ui/MobileDrawer'
 import { ThemeToggle }       from '@/components/ui/ThemeToggle'
@@ -29,13 +30,25 @@ export default function ClientChatPage() {
 
     const isMobile = useIsMobile()
     const [showRatesDrawer, setShowRatesDrawer] = useState(false)
+    const [showTicketForm, setShowTicketForm]   = useState(false)  // ✅ NEW
 
     const threadId = thread?.thread_id ?? null
     const { send } = useWebSocket(threadId)
     const bottomRef = useRef<HTMLDivElement>(null)
 
     const { data: tickets } = useThreadTickets(threadId)
-    const pendingTicket = tickets?.find((t) => t.order_status === 'PROPOSED')
+
+    /* ─── ✅ Le client voit une popup pour 2 statuts ─── */
+    const pendingTicket = tickets?.find((t) =>
+        t.order_status === 'PROPOSED' ||
+        t.order_status === 'COUNTERED_BY_TRADER'
+    )
+
+    /* ─── ✅ Si un ticket est PROPOSED_BY_CLIENT, on n'affiche PAS le FAB
+           (le client attend la réponse du trader) ─── */
+    const hasPendingClientTicket = tickets?.some((t) =>
+        t.order_status === 'PROPOSED_BY_CLIENT'
+    )
 
     useEffect(() => {
         if (!pendingTicket?.valid_until) return
@@ -197,7 +210,7 @@ export default function ClientChatPage() {
                             </p>
                             <p className="text-xs mt-1 max-w-xs"
                                style={{ color: 'var(--color-text-tertiary)' }}>
-                                Envoyez un message à votre trader pour commencer une négociation
+                                Envoyez un message à votre trader ou proposez directement un taux
                             </p>
                         </div>
                     )}
@@ -212,9 +225,40 @@ export default function ClientChatPage() {
                 {isTraderTyping && <TypingIndicator />}
                 <LastMessageStatus />
                 <ChatInput key={threadId ?? 'no-thread'} onSend={handleSend} onEvent={send} />
+
+                {/* ─── ✅ FAB "Proposer un taux" côté client ─── */}
+                {threadId && !hasPendingClientTicket && !pendingTicket && (
+                    <button
+                        onClick={() => setShowTicketForm(true)}
+                        className="absolute z-30 rounded-full flex items-center justify-center transition-all active:scale-95"
+                        style={{
+                            bottom: 'calc(80px + env(safe-area-inset-bottom, 0))',
+                            right: 16,
+                            width: 56,
+                            height: 56,
+                            background: 'linear-gradient(135deg, var(--color-success), var(--color-accent-secondary))',
+                            border: '2px solid var(--color-success-border)',
+                            color: '#fff',
+                            boxShadow: '0 8px 24px var(--color-success-bg), 0 0 0 4px var(--color-success-bg)',
+                        }}
+                        aria-label="Proposer un taux"
+                        title="Proposer un taux au trader"
+                    >
+                        <Plus size={26} strokeWidth={2.5} />
+                    </button>
+                )}
             </div>
 
+            {/* ─── Popup ticket reçu (PROPOSED ou COUNTERED_BY_TRADER) ─── */}
             {pendingTicket && <TicketPopup ticket={pendingTicket} />}
+
+            {/* ─── ✅ Modale création par client ─── */}
+            {showTicketForm && threadId && (
+                <ClientTicketForm
+                    threadId={threadId}
+                    onClose={() => setShowTicketForm(false)}
+                />
+            )}
         </div>
     )
 }
