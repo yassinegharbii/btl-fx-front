@@ -13,30 +13,35 @@ export const ticketsApi = {
   getThreadTickets: (threadId: number) =>
       api.get<Ticket[]>(`/tickets/threads/${threadId}`).then((r) => r.data),
 
+  /* ─── ✅ NEW : Récupérer un ticket par sa référence (FX-XXXXXX) ─── */
+  /* Utilisé pour le popover détails sur message bubble */
+  getByRef: (refTicket: string) =>
+      api.get<Ticket>(`/tickets/by-ref/${refTicket}`).then((r) => r.data),
+
   /* ─── Création par TRADER (existant) ─── */
   createTicket: (threadId: number, payload: TicketCreatePayload) =>
       api.post<Ticket>(`/tickets/threads/${threadId}`, payload).then((r) => r.data),
 
-  /* ─── ✅ NEW : Création par CLIENT ─── */
+  /* ─── Création par CLIENT ─── */
   clientCreateTicket: (threadId: number, payload: TicketCreateByClientPayload) =>
       api.post<Ticket>(`/tickets/threads/${threadId}/client`, payload).then((r) => r.data),
 
-  /* ─── Client accepte / refuse (existant) ─── */
+  /* ─── Client accepte / refuse ─── */
   acceptTicket: (orderId: number) =>
       api.post<Ticket>(`/tickets/${orderId}/accept`).then((r) => r.data),
 
   declineTicket: (orderId: number) =>
       api.post<Ticket>(`/tickets/${orderId}/decline`).then((r) => r.data),
 
-  /* ─── ✅ NEW : Trader accepte ticket client (avec validity) ─── */
+  /* ─── Trader accepte ticket client (avec validity) ─── */
   traderAcceptClientTicket: (orderId: number, payload: TicketTraderAcceptPayload) =>
       api.post<Ticket>(`/tickets/${orderId}/trader-accept`, payload).then((r) => r.data),
 
-  /* ─── ✅ NEW : Trader refuse ticket client ─── */
+  /* ─── Trader refuse ticket client ─── */
   traderDeclineClientTicket: (orderId: number) =>
       api.post<Ticket>(`/tickets/${orderId}/trader-decline`).then((r) => r.data),
 
-  /* ─── ✅ NEW : Trader contre ticket client ─── */
+  /* ─── Trader contre ticket client ─── */
   traderCounterTicket: (orderId: number, payload: TicketTraderCounterPayload) =>
       api.post<Ticket>(`/tickets/${orderId}/counter`, payload).then((r) => r.data),
 
@@ -46,8 +51,9 @@ export const ticketsApi = {
           .get<DashboardStats>('/tickets/dashboard', { params: { period } })
           .then((r) => r.data),
 
-  /* ─── Agence ─── */
-  getByRef: (refTicket: string) =>
+  /* ─── Agence : récupérer par ref (workflow agence, différent de getByRef) ─── */
+  /* ✅ Renommé : avant getByRef → maintenant branchGetByRef */
+  branchGetByRef: (refTicket: string) =>
       api.get(`/branch/orders/${refTicket}`).then((r) => r.data),
 
   confirmProcessing: (refTicket: string, note?: string) =>
